@@ -1,22 +1,1205 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt">
 <head>
 <meta charset="UTF-8">
-<title>Importar Alunos</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FeedbackPrivado</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --cream: #f0f4ff;
+    --gold: #2563eb;
+    --gold-light: #dbeafe;
+    --muted: #6b6b7b;
+    --card: #ffffff;
+    --border: #e2e8f0;
+    --green: #2d6a4f;
+    --green-light: #d8f3dc;
+    --red: #9b2226;
+    --red-light: #fde8e8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #ffffff;
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  h1, h2, h3 { font-family: 'Playfair Display', serif; }
+
+  .screen { display: none; min-height: 100vh; }
+  .screen.active { display: flex; flex-direction: column; }
+
+  /* ── HOME ── */
+  #home {
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+  }
+
+  .brand { margin-bottom: 20px; }
+  .brand h1 { font-size: clamp(2.2rem, 6vw, 3.5rem); color: var(--ink); letter-spacing: -1px; }
+  .brand h1 span { color: var(--gold); }
+  .brand p { margin-top: 10px; color: var(--muted); font-size: 1rem; font-weight: 300; }
+
+  .home-cards { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; max-width: 700px; }
+
+  .role-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 40px 36px;
+    width: 260px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .role-card.formador {
+    background: linear-gradient(135deg, #1e40af 0%, #2563eb 60%, #3b82f6 100%);
+    border-color: #1e40af;
+    color: #fff;
+  }
+
+  .role-card.formador h2, .role-card.formador p { color: #fff; }
+  .role-card.formador p { opacity: 0.85; }
+  .role-card.formador:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(37,99,235,0.4); }
+
+  .role-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--gold);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+    transform-origin: left;
+  }
+
+  .role-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,0.1); }
+  .role-card:hover::before { transform: scaleX(1); }
+  .role-card .icon { font-size: 2.4rem; margin-bottom: 16px; }
+  .role-card h2 { font-size: 1.4rem; margin-bottom: 8px; }
+  .role-card p { color: var(--muted); font-size: 0.875rem; line-height: 1.5; }
+
+  /* ── GENERIC ── */
+  .top-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(8px);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .top-bar .logo { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 1.1rem; margin-right: auto; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-primary { background: var(--ink); color: #fff; }
+  .btn-primary:hover { background: #2d2d4a; }
+  .btn-gold { background: var(--gold); color: #fff; }
+  .btn-gold:hover { background: #1d4ed8; }
+  .btn-ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--border); }
+  .btn-ghost:hover { background: #f8faff; }
+  .btn-danger { background: var(--red-light); color: var(--red); border: 1.5px solid #f5c6c6; }
+  .btn-danger:hover { background: #f9d0d0; }
+
+  /* ── LOGIN ── */
+  .login-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+
+  .login-box {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    padding: 48px 40px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.07);
+  }
+
+  .login-box h2 { font-size: 1.8rem; margin-bottom: 6px; }
+  .login-box p { color: var(--muted); font-size: 0.9rem; margin-bottom: 32px; }
+
+  .form-group { margin-bottom: 20px; }
+  .form-group label { display: block; font-size: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 6px; }
+
+  input, textarea, select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    background: #ffffff;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input:focus, textarea:focus { border-color: var(--gold); }
+  .error-msg { color: var(--red); font-size: 0.85rem; margin-top: 12px; }
+
+  /* ── LOADING OVERLAY ── */
+  .loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(255,255,255,0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    backdrop-filter: blur(4px);
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-overlay p {
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  /* ── TEACHER PANEL ── */
+  .teacher-layout {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    min-height: calc(100vh - 65px);
+  }
+
+  .sidebar {
+    border-right: 1px solid var(--border);
+    background: rgba(255,255,255,0.5);
+    padding: 24px 16px;
+    overflow-y: auto;
+  }
+
+  .sidebar-title {
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+    padding: 0 8px;
+    margin-bottom: 12px;
+  }
+
+  .student-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+    margin-bottom: 4px;
+  }
+
+  .student-item:hover { background: rgba(37,99,235,0.06); }
+  .student-item.active { background: rgba(37,99,235,0.12); }
+
+  .student-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--gold-light);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ink);
+    flex-shrink: 0;
+  }
+
+  .student-info { flex: 1; min-width: 0; }
+  .student-name { font-size: 0.9rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .student-status { font-size: 0.75rem; color: var(--muted); }
+
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
+  .dot-green { background: #40b974; }
+  .dot-gray { background: #ccc; }
+
+  .add-student-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 12px;
+    background: transparent;
+    border: 1.5px dashed var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+    margin-top: 8px;
+  }
+
+  .add-student-btn:hover { border-color: var(--gold); color: var(--gold); background: rgba(37,99,235,0.04); }
+
+  .main-content { padding: 32px; overflow-y: auto; }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--muted);
+    text-align: center;
+    gap: 12px;
+  }
+
+  .empty-state .big-icon { font-size: 3rem; opacity: 0.4; }
+  .empty-state p { font-size: 0.9rem; max-width: 280px; line-height: 1.6; }
+
+  .feedback-editor { max-width: 720px; }
+  .feedback-editor h2 { font-size: 1.6rem; margin-bottom: 4px; }
+  .feedback-editor .subtitle {
+    color: var(--muted);
+    font-size: 0.875rem;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-block {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .card-block h3 { font-size: 1rem; margin-bottom: 16px; font-family: 'DM Sans', sans-serif; font-weight: 600; }
+
+  .password-display {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f8faff;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-family: monospace;
+    font-size: 1rem;
+    letter-spacing: 2px;
+  }
+
+  .copy-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 4px;
+    transition: transform 0.15s;
+  }
+
+  .copy-btn:hover { transform: scale(1.2); }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-wrap: wrap;
+    padding: 8px;
+    background: #f8faff;
+    border: 1.5px solid var(--border);
+    border-bottom: none;
+    border-radius: 10px 10px 0 0;
+  }
+
+  .tbtn {
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    padding: 5px 9px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--ink);
+    transition: background 0.15s;
+  }
+
+  .tbtn:hover { background: #e2e8f0; }
+  .tsep { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
+
+  .rich-editor {
+    width: 100%;
+    min-height: 160px;
+    padding: 14px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 0 0 10px 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    background: #fff;
+    color: var(--ink);
+    outline: none;
+    line-height: 1.6;
+  }
+
+  .rich-editor:focus { border-color: #2563eb; }
+  .rich-editor:empty:before { content: attr(data-placeholder); color: #aaa; pointer-events: none; }
+
+  .criterios-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  .criterios-table thead tr { background: #f0f4ff; }
+  .criterios-table th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--muted);
+  }
+  .criterios-table td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .criterios-table tfoot td { border-bottom: none; border-top: 2px solid #2563eb; padding-top: 16px; font-size: 1rem; }
+  .criterios-table .crit-input { width: 90px; text-align: center; }
+  .pct { color: var(--muted); font-size: 0.8rem; }
+
+  .save-row { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--ink);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 9999;
+  }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* ── STUDENT VIEW ── */
+  .student-view {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+
+  .feedback-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 860px;
+    width: 100%;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.08);
+  }
+
+  .feedback-card .header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .big-avatar {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .feedback-card .header h2 { font-size: 1.4rem; }
+  .feedback-card .header p { color: var(--muted); font-size: 0.875rem; }
+
+  .nota-badge {
+    margin-left: auto;
+    background: var(--ink);
+    color: #fff;
+    padding: 8px 18px;
+    border-radius: 100px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .nota-badge .num { font-size: 1.4rem; font-family: 'Playfair Display', serif; line-height: 1; }
+
+  .feedback-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .feedback-text {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--ink);
+    background: var(--cream);
+    border-radius: 10px;
+    padding: 20px 24px;
+  }
+
+  .no-feedback-msg { text-align: center; padding: 40px; color: var(--muted); }
+
+  /* ── CRITERIOS STUDENT VIEW ── */
+  .criterios-view { margin-top: 24px; }
+  .crit-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+  }
+  .crit-row:last-child { border-bottom: none; }
+  .crit-name { color: var(--ink); }
+  .crit-pct { color: var(--muted); font-size: 0.78rem; }
+  .crit-score {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--gold);
+    min-width: 50px;
+    text-align: right;
+  }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 36px;
+    width: 100%;
+    max-width: 440px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    animation: popIn 0.25s ease;
+  }
+
+  @keyframes popIn {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .modal h3 { font-size: 1.4rem; margin-bottom: 6px; }
+  .modal p { color: var(--muted); font-size: 0.875rem; margin-bottom: 24px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+
+  /* ── SYNC BADGE ── */
+  .sync-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: var(--muted);
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: #f0f4ff;
+    border: 1px solid var(--border);
+  }
+
+  .sync-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #40b974;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* ── PRINT ── */
+  .print-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #f0f4ff;
+    color: var(--gold);
+    border: 1.5px solid #bfdbfe;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 28px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .print-btn:hover { background: #dbeafe; border-color: var(--gold); }
+
+  @media print {
+    body * { visibility: hidden; }
+    .print-area, .print-area * { visibility: visible; }
+    .print-area {
+      position: fixed;
+      inset: 0;
+      padding: 32px;
+      background: #fff;
+    }
+    .print-btn { display: none !important; }
+    .top-bar { display: none !important; }
+    .nota-badge { display: flex !important; }
+
+    /* Print-friendly nota badge */
+    .nota-badge {
+      background: #1a1a2e !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .feedback-text {
+      background: #f0f4ff !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .criterios-view .crit-row {
+      border-bottom: 1px solid #e2e8f0 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .print-footer {
+      display: block !important;
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px solid #e2e8f0;
+      font-size: 0.75rem;
+      color: #6b6b7b;
+      text-align: center;
+    }
+  }
+
+  .print-footer { display: none; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 640px) {
+    .teacher-layout { grid-template-columns: 1fr; }
+    .sidebar { border-right: none; border-bottom: 1px solid var(--border); max-height: 220px; }
+    .main-content { padding: 20px 16px; }
+    .login-box { padding: 32px 24px; }
+    .feedback-card { padding: 28px 20px; }
+    .nota-badge { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div>
+  <p id="loading-msg">A carregar dados...</p>
+</div>
+
+<!-- ════ HOME ════ -->
+<div id="home" class="screen">
+  <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 20px; text-align:center;">
+    <div class="brand">
+      <img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCACvAqQDASIAAhEBAxEB/8QAHQABAAEFAQEBAAAAAAAAAAAAAAEDBAUGBwIICf/EAF8QAAEDAwMCAwQFBAsIDA4DAAEAAgMEBREGEiEHMRNBUQgUYYEVIjJxkSMzQtEWFyRSYnKSobGz4RglKENGgoPBNDU2RVVjZHOTlKLSJic3OERTVFZldHV2leKktPD/xAAaAQEAAwEBAQAAAAAAAAAAAAAAAQIDBAUG/8QAOBEAAgIBAwIEAwYEBQUAAAAAAAECEQMEEiExQQUTUXEUImEygZGhwfAVUrHRBiMkQnIzNEPh8f/aAAwDAQACEQMRAD8A+y0REAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEyhUIQTlMqEQWTlMqEQWTlMrwQcr0gsnKZUIgsnKZUIgsnKZUKMhBZ6ymV5yiCz1lMqEQWTlMqEQWTlMrzlSgsnKZUIgsnKZUIgsnKZUIgsnKZUKEFnrKZUIgsnIUZC8nuiEnvITK8hShFk5TKhEFk5TKhEFk5TKhEFk5TKhEFk5TKhEFk5TKhEFk5TKhEFk5TKhEFk5TKhEFk5TKhEFk5TKhEFk5TKhEFk5TKhEFk5TKhEFk5TK8lAgs9ZTKhEFk5TKhEFk5TKhEFk5TKhEFk5TKhEFk5RQpHZCQiIgCIiAIiIAiIgBUKSoQhhERCAoUry44aT6ID0iwxv1OCfyMv4BZdjg5oI8xlXlCUeqKQyRn9lnpERUNAipyyxxY8R7WZ7ZOFEdRDI7ayVjnegcFNPqRa6FQqML0igkjCIiAealEQBEUeeEAUoiAIiIQEREBBUZUqMISMopAU8ICOVKKChBB7qVCkdkJJREQgIiIAiIgCIiAIiIAiIgCIoKAlFAUoAiIgCgKVACAlERAEREAREQBERAEREAREQBERAEREAREQBERAEREAUjsoUjshKCIiEhERAEREAREQAqFJUIQwiIhAUEAg57Lw8kktacep9FaS19NFUClBL6gjIZjk8Z7qyi30IclHqPomgP/AKO38Sr1rQ0AAYAXgPaIhJIAwY5z5LGaouUtstZqqeASHIG49mfEq0VPJJR7lJSx4ouVcGXyFK5Df9bm708NM6m93a073nf9o/6gru26zqaGyNo6eBkkrMhkrnZABOeR5r0P4RqNidcvscD8Xwqbi1x6nRLtQmtDAJAzbnyyqFttLqSrbOZg4AEYx6qtp6tmuFogrJ6Z1PJI3JY45+f3FX5XA5zgnjZ3rHjm1kRSq6mCkp31FTNHDCwZc97gAB8SVyzUvtAdO7NLLBDcKm6TxnG2jgLm59N7sN+eVtfUTp7pzXdJHT32KpJi/NyQ1DmOb8vsn5gr4i61WGi0B1HrtMU889VTwMjeyV4Adh7Q7BA74zjPmuvQ4NPmdZJclc2TJBfKjtk3tSVzrl+59I03uYONklYfFI9chuAfhg/eugaX9oXQN2fFFcJqyyzPOP3XD+SB/jtyAPi7C+NaC/tp6R0LKiB8DjuMUjA4Z+4gq80zW0d71JbbQ2n8GSvrIqcVEZIEe9wG7Ycg4z8F6mfw/Sbbi6/M4sepzXyrP0WoaunraaOqpKiOogkaHMkjcHNcD6EKuuedJulln0FFJNTT1NRXSl3iSmZwiIJ/Riztb/P966EOy+dyKMZVF2j0421bRKjA3AqyvdXDQ26SqmbuEXIb5k+QCwNtZXXT901lbLCO7YonFob+HdedqNasWRYoxuT/AKfVnRDC5Qc26SNsRYWeV1vaHPldPTk7Xh5y5ueM59Fl48BuBjC3w6hZG41TRSUHHk9osbqi4utGm7ndWRCV1HSS1AjJwHFjS7GfktI6A9RqnqVpWsvNTa4re6nrDTCOKQvBAY12ckD98uvy5OG9dDJyV0dJRRlQXBUB6Ra3o3W2ndWz3GGw1j6k26UQ1BMTmhrzngZHP2Sti3DOFMouLphO1Z6RecrjnTLqXqHUnWzVGj6+KhZbbXHMacxRESEslawFxJweD6K0McpptdispKLSfc7KoWgaJ1Zqy7691BZLxpCe2Wqgfijr3F22oG4Dz4JI+tkLf8qJwcHTJTtWgpXkHJOFonUPW12tF4pdPaV06+/XqeJ1Q+N0nhQwQjP1nvxwSRgDzSEXN1ElulbN9Ran0z1edX2F9VU2yptFxp5TBWUVQ0h0Mg9Ce4PcFbWDx2KiUXGTix1VolFAIPZCVAJRYPXFyutn0rcLlZLS+73Cni3QUbDgyu9P9eByrTpne77qDSNNc9R2GSx3CRzg+kfnIAOA7B5GRzg8qyi3Hd2F80bOijI+9AcqoJReXHDSTwBzlcb6fdd7XqzqVLo9tqdSMc+ZlJVunDhUGPP6O0Yy0OI5PZaY8U8ibiunUiUlF0zsyKBnHZQXAdwVmuSx6Ra4zWlgl1vLoyKqe+9RQePJCIzhrMAjLu3IIWG6m6o1fp652ODTOj5r9DWTFtZKx+BTty0c47cEnJ4+qfVXWOTaRXcqs3xFoPWLqVbenVkp6qekkrq6skMVHSRnBkI7knBwBkdge4Wp2vWPXH3ynqrh02tz7dM5u6OGsAnia4jk5ce2c/Z8leOCco7u3uVeSN0dqReInZjBIwT5d1E5PhOLQXOxwAcZP3rFclyoi0bpNqnVGqKG4Tan0nPp2WCpMcDJc/lW+vI8vXst4BB7cq04uEtrCdq0Si557QOsrtoXp5Nf7KymfVtqYogKhhczDiQeAR/Stt0jXT3TTFruVTs8aqpI5pNowNzmgnAUuDUFPsyNyujLIoTIVCSUUZGUyMoCURcZ1z1qr7F1On0JadFVF8r2Ma+PwavY6TMe84bsPYZ8/JaY8UsjqJE5KHU7Mi5fozqDrW9akpbbdultzslHLu8StmqQ5seGkjI2DuRj5rp36PKrOEoOpCLUlaPSLj1w6jX+H2kaLp5HDRi0TU3iPeYyZs+C5/fOMZA8l18HA88d8qZ45Qq+4TT6HpFGfgoyM481Qk9IoJA5PZAQgJRQSAMlRuz2GUB6RcvqOsdAa2rgtujdZXaOkmfBPUUduDomyMJa5uS4ZII8lt+gNV2zWWn2Xm1iaOMyOikhnbtlhe0kFrx5HsfmFpLFOKtrghTi3SZsBygQlM8rMklSOyhSOyEoIiISEREAREQBERACoUlQhDCgohQgs6mupqRgfUP2b3kDjPIK81MNLFM2t923znA3gZOMKH00FS+SGqiEmyQuYHDyPOVdncHAADar8Lp1MuXdnmcMMDvEYXt9MLQ9b3isk94thhbHTNIw4NILsDtnst9c94mawRktI5d6LW+pMoFkbTNa10krxjLgCAPMDzXVoGlmimrs5vEIuWGTTqvzMR0w09a5LR9JVMEVVUPkc0F7Q7wwOMYPr3+ao9RLRQUUlPU0kTIXSktfGwYBx54Xzt1I17r7TGuZNM6fraq2uAiHgRMa58r3tDm8EHycArC413XivkbLWUuppnAYBdSdh/JXuLS5FqvOeRbWec5xnpVj20z6q0De6+qljts8LfAjiO2XadxxjAznC3MEr4vor57QdPAyGBmpWRsGGgUTeB/JWf0bWder1qOmobneL3aKN2XTVVRTMa1rW9wPq8uPYLh1XhzlJ5FKKXudml1XlwUJW2fWD3tZ9o4Xz11l6P6Q1Pr+s1XqjWrbTFOyJnu26OIgNaGk7nk98eixHXjrTV2l50jo+vkfcogI6y47gSwgYLGnGN/mT5eS45VaH1HNVx1+paiSD32RgZPMTO+d78HAAOTwck+X38LfQeDTkt+SW1fmzDV+LQxy2pWzqcXS72dYozFJrmd7+3ifSTM/zMwr7S/RDpi/U1suulOo3jzUdXHUCmkmhmL9jgdvG0jOPQrj9+0O6h1Eyhoq1lfQFzW++xMPhjnDs57YIP4K51ZoMW69U9ust0juUs8Imj8NpYC3vkE9/kvTfgmPhRzO39OPvPNh478yTgferT8cr0vkfpT1m1Doe6u0/riWpuFtbIIvFkeHy0ZBAJz3cwenJHkt16wP6p0V6hu2h73dLnYbmzxoG0sbJBBkDjO05ac5B9MheBn8Hy4cyxZGkn0fZnvYPEcWbF5kOfU7Rq+mmnsUrYi57mPEmD5gHssBZ7mBsjEgYdvPywuD0+oOvIieySPUDySCHGmbluP81dC0xVV5tVG+7sfT3Dw8VEco2vDgCCSPLPf5r4j/ABR4Zn8Oyw1eN7r4dc+34nueFazFqYvC+K5Vm7XW6OrKdtFTflJpnBgA9Ce63WFhDRl5OBjHkV85dSb9erDaqWtslTPSS+KGvnjH2RtPByPP/Uuy9IL1Wag6d2q7XB++rmY4SuwOXNcWk8euMrp8D0eplpFrs3Sbqu6r+/P5FddnxLP8PD/bz+Jf9Rhnp/qIf/C6n+qcuGeyHVTW7ofqqup9onpquolj3DI3Np2EZ+GQu6dQ/wDcDqD/AOmVH9W5cG9lQf4P+sB/xtUP/wCM1fS4v+3kvqjzp/bXsy96Z6t63dSNIG4Wmq07aY45Xx+/TwEvnePJrAC1rR2JIOSsz0p17rrWdl1RpuWS202rrHUNhFU+I+7v/KFrsgdyNjxwAOQVc+xzj9pqL0NfPg/MLBezPn9tvqhwf9snY4/5RMtcm3/NSivlqvxM1u+Xnqad7NFP1DqrlqT9jd2s9NDFcYvpMVUTnGQ5fnw8A47O748l1DVuvNW37qLVaB0DUW22ut8QfcLpWx7xG7j6rGng/aHfzz2wuf8As36tsGiNUaysmqa76Mray5M8Fksb/rFrpG44B5y4fBW2sLBpfT3Xi9VXU61ySadvJdPRVmZNjXnaTkxnP74Efdxhb5YqWebku3HHX+5RXCCo6TonXWrLL1Qi6e67rLddJK2nM9vuVHH4e88/Ue0cD7Luw9PXK03oO0/3UOvT/Aqv/wCxGtq6aWnoVLrOkdoqOOe80zHVET431BEbQME5edv6XZaV0sutDpv2qdWU18m9yluL5oKQSNOZXvmY5gHHmBweyxSW2aiqe0u+XG3fJ0bp3r+9Xnq9rrTt0lp/oux5NMGRbXNAcQcnz4Wt2LX3UvqnfLi7p7Pa7FZLdJ4fvFbF4j5z5A8O74zgYxxyVa9JaY1nX/qzSjLfHY+MO9C55CwnQHVNL0ikvmjuoENRZ5jUCoppXQOe2U42kN2g5Bw0jy5UyxQSk4K3Spf1CnK1ufHJvvSvXWubl1hveitXC1tda6FsrvcmHa558PDg53OCH5x5KjU6v1zrrWN5tmhLpZ7Fa7NJ7vNcKqMTSzyDPDWkEBuQf6ec4GA6MXpmovad1feY6OqpIqq2M8OOpjLJNoELWuI8sgB33ELUrJpzQOlOoGorD1Ztkscc1S6a1V8jphFLEXO/eHucg558wcK0sMN8uOUlx79SqnLaue7Ou9Hdc6luGsb7oPWsdukvNrjbOysojhlTEcckcYI3N8vM+nOr9PdddXNfxXujsbrDSChrnxfSNTGcMb2bG1gzl3cknjsFs/Rej6ON1NXT9OYg+vipg2oma6fYI3O7DxOCct8lgvY84oNZA/8ADTv6CsZKEVOaj6dV9TRXcVZkOjvULV0nUG9dPNdGjqrlb2CSKspWbGvBcwYIAAwfEaRwPPKt9TdS9Zan6m1vT/ptHbIHUDXGsudYC4RlpAeGtwRwSB2OTny5WJ0y0H2vtUuGSfdIjj506wunalvSH2h9Q1eqmy01nvniugrxE50Y3yCUZIH3tI+a0eGDk3Fc7U0vVlN0kqb7nT6+u6kaQ6Xamu2przarlcqOnM1DPT0+0DA5D24APKq9LNU6w1j0Tiv9Mba/UU5lbCZ2FkBLZS0bg05H1R5eatepOs9M6x6N6zOmrrFcW0lEWzuja4BpdyO4Gex7Lltuu+pbB7IVvqtMuqIZjXysqaiDO+GEyyZcCO2TtGfLKyhi34+UlLd6fQ0c6lw+KNj6g6j639OrZHqe8XjTd4oBOyOekhgLNm48YOA4jyzk49F3XSl3hv8Apq23uBjmRV9NHUMa7u0PaDj+dfJHUql6ZzdNWS6budyv+o9sMtVUuqJ5fAGRvdKD9VoJO31yV9PdG8/tVaXyDn6Lgzn+IE1WNLHGVc36URhk3N30MV7QOqzpLpbdK2GYR1tSz3Sk5wTI/jj7m7j8lw3WGjpem3T7p9ri3xNkulpq2zXE9i8TfX2uPoD9T/OWw9bp2dS+tlh6X0z5hR25zp7lJEcFu5occccFrcD73rK6h9mvTs1jrWW29Xx1d4DzTtqakPiMmDs3AN7bsZWuCUMMIqUqb5fHYpNObbXY6PqfWDh0frNZ2B7CTa/faUyN3D7IIBHw7Fc/6a6r6x65o7Hdaejs9usjZG++VMhxLWtDsP2NwQ0cEA8ZPmtS6Z32pm9m7W+kblllfYIJ4zG77TY3Z4P3PDx+C7B7N3/kS00MHIgk/rXrOcI4ccuE3ur7qLxk5zXNcHDKOj6pu9pO5U9Nd7A3U4oA6Sd0TjTGHazAA253Yx5LpHVDW2u9EHQNtqKy2zV90qnQXSSGDMb8PjGWZwW8PPksFqC923RvtZVd71HK6gt1XamsiqXxuLCdjR5A+bCPmvHtJ3Ogvd+6W3W1VDaqiqbg98MzAcOb4sHPIz5LWvMyY9y42+n0fBRfLCVPmzVfa2i1gzqBYRcay2SUM1S/6GZG07ovrRA+Lkc87e2eFuGptVdZdE6i0xR6iu+naqkvFc2nxR0x3AbmB2S4DHDuMLH+2W0u1boEgE4qJO3/ADkKzntShx1T02LQT/fYj/twqcclKOOMkq5IkmnJp+hsvWHqHf7Pqe06G0VQUtXqG6N8QSVR/J07MkBxAPf6rj8APPIWV6dW/qnRXiZ2t79Zrnb3U52NpICyRkuRj9EZbjcud9YzUaK696d6k1dJUTWI04paqeNhcISQ9hz8nA/HBxyuraU6k6K1Vc/ovT18jrqvwHTmNkUgwwEAnLmgd3Dhcs4bcUdkbTXL+t/kap3J2zVehOt9T630bf66sdRPuVJWSQUf5LZFwwFm7BzjcefPCxGqz17stkq9SSaj0tIyiidUTW6KlO0saNzgHuGScA+YWk9GrherP0A19X2HxW3KGve6F0bdz2DDA5wHnhuT8ljYpumNx6VTVt2v12vusp6GVxhdWVD5Wz7T/iwQ3Y0jJJGMA/cul4UssmkqtcVfp+Bm8j2r1Nv636n/AGZ+y5RakdTtp31dTCZI2nLWvbI5rgD6ZaV2zp4P/ASw/C3Qf1YXzpeqeab2KbYIo3uENSHvwM7Gipk5Pw5XdOi2orRqLp3aprTVioFLTR0tQNpaY5WMbuYQR3Cx1UVHFUeik/0L4nc7foat7R+v9RaEZpyTT8dPK+vrjDLFKwHxAMYaD+jnPf7lq/UnVXXLRFsj1pc6jTTrW2ZjKi1QMc7wg44A8QtDnemQe/kV79sLPvegsDP9+R/SxbL7XPPRG4gZ/wBk0/l/xgU4VFeWqT3Pn8RPdcuTaL3dNXX7RFqumg/oqnqrhHFO59yDy2KJ7N2QG5y4Ejgrmmo9c9UOmV7sx1jX2S/2q6VPgE00JikhILd2MAZwDxnOcLE9Ub1dbd0y6XULLtXWiw19NBFd6ul3BzI/Di4JbzjBeceePPstD61wdOop9Ot0JU1dwcK0e+VUk800eeMN3PON5xnA9OcLXBgV1JcO+3p9exTJkdOuvB9pNORkdl8na6v0Ol/bFffKigra6OCJoMNHF4kzt1Jt+q3IzjOfuyvrCMgtyF8raxvlr0z7ZBvt8qvdaCnhb4suxztu6kLRw0EnkjsFz6L7U+L4ZpqOi57nbunvUuh1neJrdS6d1FbTBAZzLcaPwoyA5rcNO45d9bt6ArRrhrvqHrnX940z04da7ZQWWQx1VyrI/EL3gkYAwRjIPl2BOVu+nOr/AE91He6Wy2a/iqr6lxbDGKaVuSGknktAHAPdcl6SaitHSzqRrTT2sqk2xtXV+8UtRKxxZI0OcRggHuHNIPwKtjxfaeymlwmJy6c8GM03FqeL2vrVFrGe3VF2bTEOloQRG9nuz9pwQCDjvwuo9Mdc3+/dZ9aaXuMlO63Wg/uRrIg1w+vt5d58LmFkv9Hqf2x6C82wzPoXwOZBLJGWCZraZ43tBwdpIOOOVltKX+0aA9pDXD9WVX0XBcY2vpppGOLJAXBw5APcHv6jHdbZYb07XO1GcXtrnizoV81rfaT2hrLomJ9OLRWW91RKDFl+4NlPDvIfUH861+/9Qtf6q6j3PRPTeC3UkVqOyuulY0vDHg4IA5HcOGMEnC16i1PQ6t9q7T9ztsNS2hbb5YoJpojGKhojlPiMBwS0k4yQqWkNQ0vSPrbq+h1hHNQ22/1JqqKudGXRloe9w7Ak/nMHHYjlV8mKj0+bb0+tk75N9eLOtWGl6pUOjblFc7lYLnqLf/e+Xw3RwbcD85tAOftdh6Lnmv771v6fWY6uu1701d7dBLG2qoYqYs2h7g0bXYBIyQM549DhX3XLqY6t6U11z6cXd9Qaesjp66spWva6mY5pJcCQMfojI7ZXK+pkXS2XpW6SxX24X3U0jIHyyyVdRLsy9viOkaTsaMnHI7kYUafE5SW9dX0r90TklSqL7HaOpvWZmn9C6du1jt4q7pqOKOWgppgcNa5rSS7BGSC5oxnuVc6IoOt4vtDcNUX/AE7LbJDuq6CCAh8TSDgMdtGSDgHJxwuR9TrRdqbp30o1tQUMtXS2S3wGqZEM7eI3tP3HaRn8V3LS/V3QmoprfRWy9NfcK4ARUjoZGv3bS4tJLcDsec4VMmPbjXlxvl33r+xaMufmdGD1BQ9dKm410lnvGkLRb2TvNJGIHySSsDjtLyWkAkYzjsvPSfqjUXLR2pa7VNHS0lw01I9txNN9iXaHctGe52EfIeq5boS7aU1O+81vVzVl2ZeIq2WJtqfVzQsjYMYDWR4ydxcMD07Kp0UsB1DorqzYLTTz0vvE4bSQT5EjMeKWMfnndwGnK0eCKg1PtXaurXfuZrJ8y2/U27SOrOs3Uuzyan0zLp+wWwSujpaaoY6R85acHc4g4HlkY5z962XpX1Ru2rtL6ggms8LNWWESRzUUZIjmkAcGYJORlzCD6ceq0zoD1J0rojpsNL6yrzY7paqifxKapgeHOa55eMAN5+1jHwT2b2VVDLr3qjdaSektFxkkqacOjO98bXSSOIb6DcAD65VcmPidx4TVfX+5MZPjn3Ou9J75qu/6UbX6wsDLJcTM9ngNJw5g7OwSS3z4JPbPmtxHZar0z1ta9e6bF9tMVTDD4r4XxTsDXtc3y4JB4weCe/3rah2XBP7TtUdUegREVSQiIgCIiAIiIAVCkqEIZC8eKzeWbhuHcKovEgJI2uDeeeEQfBSnhpp/zzY347bh2VrPS0cZY6JzKeUuDWOZxz5A+o+CvsO/f/zKlVR74S1zsg+g5GOcj4jurpuykkqs9bzG0GV7ccdhjlWV1tdDcZoJqn7cBzG5rsYK9tqmEYdWU8bhwWvHOfxXv3g/+30x/wA3/wDZWjui7Rm5RmqZ8ddZ/wDzr4G7/ELbjbeT/FhK+rGsZ4e19OXOzndvxwvlbrIwO9q6E5Y/dcLbkt4B+rF96+qRG0ceCB/pQV7Op/6WL2POX25E4aBxTH+Uud9dtWz6S0XV3GiaGVY2wwZOdr3n7XyGT8ltms9RWnSen6i9XUEUtPGHPLclxJO0AD1JIC+ffaB1NHqrpPZb3S076WC4V+9sTnZLQ1sjeSPuTQYHkyxbXF0U1E1GDS6nPOlNvfcKyumnFvMksD9kteCQ6U9to/SeT5Hvyt3s9TDdbPdqKiuIt9TE8TwVVRUl8Zc0Ye2P6oLctcT9UE8D0XPNIVNxu9vNmgeXyUWaqhhaQ0yS5aMZ4J4+tjPdoW52i70IoZbRe7PS12phIPBe6Ita14OS1xY5u5xPwxkDJK+uyxa6L06HyeThuT6m+6C0lPJoKurPp6GobUNMk/5fcx72nIwecDjB4B58lpdPRG06du1w1BeKW8NrJSxsUc5L4Xn/ABnbLQR9Xjgj7lbUF/h8OT3i7SWqrGGm2sGGOLSCNpBwzOSCD2+YVO51rLVT1puNDDTV12j3RiaMyhjPL+CG5A24BOBg+qzUJbnud2/Tt++5hsnB1uav6/W/u9ijrKgirtDUVxoPcaiR8xfIGOzVMZ2BeBwRkO+tjPA7dh2b2RNUVl30HctO1rxI+zPaabJ5EL8kN+4ODvkQuD3Gsvtitxu9VC+kuE7PcgC5hjlgLCNwbz5BoyMDgfFbv7HtwfSal1TUEF7Y7Q6csz9otf8A2/zrn8VweZoZX1TtHs+FN49RS6M+n4nFzdzmgfzrj3VqS4WfUJqhS1E1NVAFj42EhrgAC0/W4Pn2W59Jeo9l6h2mSeiilpa2kA95ppACWbs4II4cDg8reHP2uLd0hI9B/avl8eSelzPdHn0PfeOOWC5PmrWIq5uk8tyqaaWnZPXwtiEmQ5wAfk4J7LtPs8vd+1JZ8f8AHf1r1rHtNyE9N25c8/u6LOR8HLZ/Z2B/aksx3HH5bj/SvW2tyvNpFNqvmZbSQ2ZnFeh0GRjJYjHI0PY8Yc0jII9FQpqChpYHwUtJTwRPJLmRxhrXZGDkAYKufJRkeq8Cz1KKNLS01JCIaWCKCMc7Y2Bo/AcKKeho6eWWWnpYIXynMjmRhpefUkDlXClSKRj6qyWerq21lTaqGapYctmkp2OePuJGVXraKkrYDBW00NTEe7JmB7T8jwrlQptikWNttFqtgIttto6IHuKeFsYP4BKm0Wqpro66ottHNVxYMc74GukbjthxGQr7hAQUt2RS6UW0NDRQVEtRDSwxzS/nJGsAc/7z5rk+q9Y9Srdfa2jj6WNvNM2Yigqo5gRs8i8YOD92F2FOB6K0Mmx21fuRKNqk6OP9DdCaltupr3rzWckDLzeW7RSw9oGZBwfjw0Y5wAuq3C2264xiO4UNLWMHZs8TXgfIhXeB3wEVsuaWSe9hRSVFrQ26goIzHQUdPSMPJbBG1g/ABeqSjpKRrhSU0MAe7c/w2Bu4+px3KuE4WRKSLdtDRtqnVTaWAVDxh0oYA8j4u7+Q/BRXUFFXQeDW0sFTF+8mjD2/gQrnhEthqyyprTa6WnfTU1upIYHjD4o4WtY77wBg/NVGUFGylNLHTQspyCDE1gDDnv8AVxjzVypU2xSMdTWSz0sD4Ka10MET/tsjga1rvvAGD81fQxRwxtjiY1jGjAa0YAH3BelKhtvuEWkVvoY6x9bFSU7Kl4w+VsbQ9w+Jxk+SuccqUUPkFoLbb8zEUVNmbiX8k38p67uOfmq1NBBTRCGniZFG37LGNAaPuA7KsoU8+oLO42q23INFwt9JVhpy0TwteB92QVJtluMcEZoKUsp/zLfBbiP+KMcdvJXihTbFItqugoaxzH1dHT1Dozlhlja4t7dsjjsF6qaOkqXxvqKaGZ0R3RmRgcWH1Ge3YKuijkFKpp4KmF0NRFHNE4Ycx7Q5p+8HurW3WWz215fbrVQ0biMF0EDWE/eQFfocJbSofUt6aipKVjmU1NDA15y5sbA0OPqcK3p7JZ6eSSSntNBC+QEPdHTsaXA9wSBysgnZSmxSKDaKkbSGjbSwNpiC3wRGNmD3GMYwvFut1vt0Xg2+ipqOIu3FkETY2k+uGgcq6BB7JkKLYLesoaKsMZq6WCo8N25nixh20+oyOCpqqWmq4TDVQRTxE5LJGBzT8iq/BROQW09voZ6MUc9HTy0wAAhfG0sAHYbSMKiyzWllMymZa6JsDHbmRiBu1p9QMYBWQUKU2hQAwFZVFptdTO6eottHNK77T5IWucfmRlXuQiXQLCns1op5mzU9rooZW8h8cDWuHzAS42e03J7H3C20dY6P7Bnga8t+7I4WQUEgH+xLd2KRasttvZOyoZRU7ZmN2tkETQ5o7YBxkDkqncLParhIySvtlFVvZ9h08DXlv3ZHCvlKWxSLUUFEJ46gUcAmibtjk8MbmD0BxkD7lFwt1vuMXhXCipquP95PE14/AhXSHCWxwWVLarZSUjqOlt1JBTPGHwxwtax33tAwVRpdP2KlhkiprNboY5eZGR0zGh/OeQBzz6rJocJuaHHoUfd4GU4gZEwRABojDQGgemPT4Lk3RvTNRbtbamrorDUW6xSSh9Ey408YqPHJJkdG4ciLkYBK6/weEwPQK0MjjFpdyHFNpmPdZbQ+s99daqJ1V38cwMMn8rGVc09HTU75HwU8UTpTmQsYAXn1J8zye/qrhFW2TSMbX2KyXCcT19poKuUdnz07HuHzIyrw08Pg+B4bPC27dmPq49MenwVVEtvqKooUNHSUNO2noqaGmhbnbHCwMaPXgcK5HZQpHZQSgiIhIREQBERAEREAKhSVCEMgn17KwpK+mqpzC2EggE8gc4V8eVRhpKeGQyRxNa49yArRcVdlJKTao8PYBIQ4wAH7ILOUyGch8APqG4/1qZKymY8sefrN4P1V6DyQc+EPT7lamV4sov2F24thefPDRkrxIIi5hY2DbnLgQOVWld9Qg7D/ABTz8lbg55xEc+aslZVtnyD1ib/hWQhrAAbhbsBvpth7L6kaGADLHsd+9dz818v9XNh9q2kacAfSNt+z/FhX1IIYgMufNx/B/tXs6l1ixex50Vcpe5yf2sSx/R+rcC7cyqpwRjjAf/auL60d/g6aM5595f8A0yrvHX3TV21R00ulBaoXTVQeyeOIDl4Y4OLR8cA8fDHmuHaytt0k6G6NtLbbV/SHvj4xSCFxl3flTjZ3zhehoJQjGCvpL9DjzqUm+OxouhrBU3eplqW3SK001KWB9W8OcQ95wxjGsBc95wcAeh9FndV2bU+hZBcKa6SVFJXOMTqtsb43iVuHOje14DmPHB57g+aq6M05qOkoqy13nSmrKamqZIqiKso7bK+Wmmi3bXBhxuGHuB5B7Edll9e0+s7xZobBQaX1ZWUkdWayetrrbI2apmLduS3621oA45OcntwF7L1F5q3Kvu6e/ucE8FxT2/ecqlnklldLI8ue45Lie5zlbDpJ19v1d9BUtwZFDLGXTy1L/wAlDEwFxe4+TRjPCpHQeuPLR1//APx0v6lnNE6b1pZL06eq0PqOejqaeSkqmR0EocYpGkEtJbjcOCM8ZAyurNnhse2Sv7jOOntpSiVNdaNuVFZRdIr4+8U9K1gkbJTSwviidwyRrXjmMnjcO3oFtnsm8XfV/wD9vTf0hU9RU2qW6eq7TadP61ur62BlLJUV9okj8CnY7cI2AF2eQOeMD1ysp7Mlmu9o1Bqymu9rraCofp+QtjqYHRucN2MgOHIyvN1Wffo5pyT/AA6HXo8UoZY3Gup79il4GqdSB5IzRxdh/DP9q+onlr5CQ/bn5L5y9kHTd2tst4vldT1FHS1UUcNOXtLXS4JLjg+Q45+9fQ3+mm/D+1fO+KtS1Umj09I6xI5l7TgLenI+vuHv8Xn/AAXLa/Z1JPSKz+n5b+tetR9pjJ6ctG+R37ui+0P4Lltvs5u/8UVnz6zf1r1lnX+gj/yZtgd6h+xn+o18rNM6GvF/pYopZqGmdMxkv2CR2BxzhY7SNT1BrnW+vuz9NC21ELZZG0zJhMA5mQBuOM5IXjr6QejOquR/te8/0LWuk9s0lbhaKqk6gVtfXPo2MFDPfRMzc6Ploiz3HOB5YXnKK8ly736X2O5v56OgjWOlTfPoMahtRuYcWGl96Z4ocO425zn4LGaX6j6Xv9fdaKlutAJLfM9mPe2OMsbGNc6VoB+wMkE/ArRtP3Bui7rZLBba7Tmo7TXXEwwyQyD6QhMjnO3OALhIG55d9U47q4oJbXSUfVKiHukVwbPVSxw/VbL4ZpIyCG99uQe3Ct5MUnf3fiHNnRo9X6Xllmij1Ba3vgp21MoFUz8nE4Ah7ueGnIwT6heKHWWlq+gq6+i1DaqmloxuqZY6pjmwj1cQePmtBt9RbdCdCrPcqKy0dRJPR0bJTMA1rnzbAZJn4J2guyfgFaWWrjreu1qgNysdx3WCpFR9GQbYvzkWGuO9wfjkjtgHtyq+SuX2X6EqdNJm76A6iac1lQ1NRb66lbLTSSiWD3lj3sjY8tEhAOQ12A4E+RC86S1XR6g1VcY6DU1jrqSFu2Cio5mSzcY3SvcD2ycAAYHmc9uVReF+0LqKgtxg9+prtUe/Qxs3SsphXZfuY0h5b4eTjjIW42mmgvWoNP1tLqvR75KF75YYrXT7ZpojE9pj/OnDfrA4xwWj0Vp4oRcq9SkckuLN4r9Y6Ut10+iq7Udppa4d4JqtjHjz5BPCpVl3mnvFgdabvZTbq/xXPbJIXS1TA0FpgIODjOT8FzTT1x0vT9Jr3QajfQsvzffBcaedrTUyTlzy07T9Z2QW7SPLCpaJbsouiY7j3CoPyNKFHkVz++hZZGdV/ZjpUXf6IOorV9Ibtnu3vbPE3dtu3Oc/Duqt81XpyxVENPer5bbdLMN0TKmpbGXjOMgE5XEtcaoj1B0zulxe/TttdJUvEFvbAZK5r2TY3OcHDY/LdxO3j15W2a/f+xm+3bVdtu+nqupfRRe92m5yASObGHEeE4ElrnAn6paQThHp0qt/vgeY+TrEb2yMa9hDmuGWkHII9QtH15qHU1HrCxac00y0+NcoaiV0le2QtaItnA2Hz3/zLYrDfqC5e707JGwV0lHFWPonn8rCx443Dy5yPkuf9VrCzUXVTR1udc7lbc0le/x6CcwyjAj4Dh5HzVMUFual6MtPpaN70zJqaGkndquWz+K12YzQeI1gZjku3r1ZdW6avdXLR2e/Wy4VMIJkip6pkj2gHBJDSfNcm60aTvVi6ZRW+y3e+3aA3Hxq+StndUyin8F4eOMEswO3qVsFro4LxqDTdbT6t0m59BKZYYbZTBk08Zic10f51xDcOzjH6IV/Ki47t3r2IcmnSRvjtUafbVCkN6twqSJXCI1Ld2IiRIcZzhpac+mDleKfV2mJ3Ttiv9reaenbUzYqmHw4nfZkdzw05HJ9VoOjbXRwaI1xchTR+91Fwu26UtBeGh8jQ0HyGB27clU9MSUOjPZ/tFwpLVS1EktHTeKakYjLpS0F0rsE7G7s554AUPFHlL1olSZ0XT+qdO6gMwsd7t1xMPMopqhshZ6ZAPCt/wBm2khXUlC7UdpbVVgJp4jWM3S4JadozzyCPvBWgaeq2zdaaPZcLLWPNhn8Z9rgLI/zkZa1zt7g4juO2M9uVrYtFv8A7l+4T+5xe8yTTTOm2DfvFW4B27GcgAK3kRvl+n5lfMbXQ7Va9V6but0mtdsvttrK6AEy08NS18jQOCS0HKiu1bpqhvUVlrL7bae5S4EdLJVMbK4nt9UnPK07XNuo7frTp2bfTQ0pbcpofyMYZ+T92flvA7ZA4+AWgaXoZq7RuotPX/UmmbRWVNdWMrBcaY++Mc6RxbIHOlbn6paWkDGMKscMZLdf7tkubuqO6XjUths7i263i30TmxiUiepaw7C7buwT2zxn1WG1N1F0xZdEVGrGXSirqFjHeB4FUwiokAJ8NhzguODx8FqdqtEUfWLT1HcJ2XV9DpDaKmRu4TO8ZjfEwSeSM+Z7nlajdaNg0/1zo4acPiil8SCFrMiNxp8ktHkScnIVo4YWlfp/UhzZ2WHXekX6cg1BJqK1RW2ZwYKh1Wzw/Exks3ZwXD0HKyFr1FYrpa33S23egq6FgJfURTtdG3HfJHAx8VoV01RbKOg0jbrWdPmG5NcBXVZaaandHE0n7JGZDkADI81rlnobdqOfqXa6zUFvpqOc0IfX0kYip2v2O+sA5xaeWtB+tg4wqeUqt8f/AGhvdpUdc09qjTuovG+gr1b7mYceKKWobIWZ7ZweFcX2+Wew0fvl6udJbqfdtEtTM2NpPoCe5Wn9N9RVVXqG42CrFkrHUlPFMy4Wg/kpGuJAY8c7HjGcbiMFYTqIK6n6xWerqK61UVuNpkipJbnAZIG1HiAvH22hryzaASeRuCLD8+0ndxZ0+1XS33agjr7ZWU9bSycsmglD2O+4jhabqK+6wk6gyaY0y2xtbDbI618lwEpJL5Hs2jYf4OfmnSmz09vrdRV9LqC03SO41bJZIbYzbDTSBmHDAe7l3BKwWoLNeLv10rGWjU9XYnxaegMklPTxymQePJ9U7wceRyOUhGKk76JfmRKUklRtGktaOqH3e3aohpLRcrPPFDVOE+YJBKAYnsc4D7WcYPOeFkqrWemorHVXht9tbqSmldA+Y1bGxiZo/Nl+cB3wXPuoujqTT3Sa7Unv1dX1dzudE+tr6l4M8zjVQtzkAYAHYDGFsmu7rS6YFisdBbrRTR19Q6NlRWtDKWl2sJ3HHd5HAGRn1VpY4SacO/6USnJLkr0WurZQdPZ9T3TUFmuDYWyOfJRztEJkAJbA0nu7gN55J5wOw82/W9JqOwWm7abvVkY2oq6eOqjqJxIW7+XQN2n87g4APotE06YrhXdV42z0Fxidb4XNfRwbIJJPdpQXMbucCeAMg8kK7jrLVWdMenrrVPSSgXe0tn93c0lrw5uQ7HZ2R2PKs8Mene/0Kqb/AH7nT75qnTlgLG3u+W23OfyxtTUsjLh6gE8qndtaaTtFNTVN01HaaOGqYJKd81WxolYezmknkfELRNJ1dgt/UXWTdV1FvprvLWtfTOrXNbvo/Cb4fhl/cZDsgdjlXF91RT1GrpbJSv0xQUFNbo5xXXBgk8dkm7DYGBzQ5gxyd3cjhZrDzX0stv4s3+r1BZKS0C8VV3oIbcWhwqnztERB7EOzg5Xqx3q1323/AEhZq+muFISWianlbIwkdxkea4X07tNLc+ltpqjf6C1TW3UFVU0HvzA2mlcHvHhujc4ENw44AORjK6j0n1DNqGw1ktRQ0FNLSV8tI99vk8SmnLcflI3YGQc4+BBGeFOXDsuuaJjJt0zH3O+65rdd3exaabp9lPbKenle6vbLveZQ84Gw4/QPl5rJ6F1qy9Wm6SXenhtVdZql9LcmOnBiic3ncHnA2kc5PbzWpS2O83nrBqxts1TXWFrKGhEhpoIpDLkS45eDtxg9vVUtd6WZo7QVrprZUGSjZe4aq9VleDN4zS8l0s4BBe0PLCfLA9ArKEHUe7r/ANlLkuTpth1FZL/HJLZLrRXFkR2yGmnbJsPxx2Ws9Q9fWa1WG/U9s1Da26goqKWSKlNRG6RsjWkjLM5J47YzwsC6kra+uud5septOVt0FiqKaKmtMWxz3OwY3uPiu+y4YB/hfFaqKzSMXsxy0Va6jN1bbHtqKeRrTVisGd29v29wdkkkZxz2SOGNp9eUTvdHXhqyzWmw2ys1HeqC3S1VNHJmpnbFvJaC4gE+p8ll6a8WuptIu9PcaSW3lhkFUyZpiLR3O7OMfNc4qtRuhudi0+0afoS2yQ1Lq+8cgg/V2RNy3cRtyfrDyWj2t+/pzU1Ej2VFjh1w6S5eDA5kRoxIC4iPJ/J5IJHIxkp8Put9B5jXY7da9Z6VujmMtuobVVufJ4TGw1bHFz8EhoweT9U/gVjOoesbdY447ezUVjtdznLdrrhUsaIo8/WkLCQXYGcDgE+YWn9QbjpS4a46fizVNvqa5t5BD6IseGxeDJkOc3gZIGATzg47K70FX6ctly1hBqiqt9Lc3Xqokm9/c1rpKc/mS3f3j2YAxx3UeSopTp+330Tv52nSZ7pQUdpNyrK6miomRh76p8jWxbf327OAD/rVjatWaavMkcdpv1srZJS4RthqmPc4gZOADk4HK4lQxTU2ntH1tzjlj0pHqqrnPjNOyOkcZfdnSA8CPcRjPABaVt90rtO1vXXRjrLPR1EzKSvE8lKWubt8MbQXN4zweO4z8UenSbV31/Ijf9DetOXWb6Hqq29XW0TMgqp2unpH4hiYx5Aa8k8PbjDvilo1tpG7xVUts1JaauOkZ4lQ6GrY4RN/fOIPA47nhchuEcZ0RTuubHPskevKx90G0uaIfep8F/8AA37M549V0DWOqdNWXRdwu9lhs11dBFE0wxSRlmx7wxpkLc4jGcnjyKrLFzx3ZKk+5sdg1dpq/wAssNkvttuMsQy9lPUskc0fEA9vj2Uwas0zPe3WOG/2uS6NJa6jZVMMoI7jbnOQuTNq21PW3Rm26WKrnNNWtn+iKcsYxphJDXS73B/IyAQO2cK/0vWt0beLJp22V1g1Ha66ukiilp3j3+mL98he8NLg9o5Bd9UjIyrSwJd+1hTfodkByMqVDfshSuY0YUjsoUjsgQREQkIiIAiIgCIiAFQpKhCGQrWS4UscjmOfgtODwVdYWIqbZNJUPka+PDiSMrTGot/MZ5HJL5SZJLdJI55e/JOeMrIQmCaMSNaCD5kLEPt74iPEqIGE9gXYVeSnhltzaZ1c2Mg53RvC0nGLSpsyhKSbtGQe1uQWMjx5kjsqTmgEcQ/DhWdtt0Uc5lbVyzgAgh0mRyr4DYcFkLW5w3nuPwVGlF0nZeMpSVyVHx31gaf7q+nDRg/SNt+z/FhX1I2SQ931P4r5e6xn/C0psAcXG2/Z/iwr6f8AELQMPk+bl7WoV4sXseenUpe48SQn6k024Ak5cfRaNrqmcNXaWu8jzspr3A57icgNex0Wf5T2/it9Aa8eKGnJBD2tHP3qxvlvjuNC6nlbK796HN4/s7D8FzQkouiJRvn0Nm5z3K9tJI7lY61VgqYQ14LJmjDmn+lV7hBVz0nh0daaOQkESiISfeMFcMlTo64tSSaL5uf3xVQZ9StbbatR541W7H/yESyVopLnTPe6uu7rgHABrTAyPac9+O6zkq7mi6mT59StJr6N7+pF2ujf8TYYqRuSMF75JHYz64DfxC3UuAGSVgK97HzTCEPiL3h0jmszvcBgZ+S0wNp2iuZrbRZWaB7LfTtk2hzW4eS9px88q9kma6V5MsmMfV2lW8YcxpaHTY+DMf6173v/AH9T+C65PdJs5IR2RSXY5n7Sj2u6csw+Q/u2Lhx+Dltvs6k/tRWfkd5v61y1L2ky49Om5dMR77H9rt2ctu9nRm7pFZyMd5v61y6dRxoV/wAmWwc537G+1MMNTA+CoijmikGHse0Oa4ehB7q0pdP2OmmZUU1nt0MzDlkjKZjXN+4gcKrW1YilbAwDceHPP2WferdlVI6Yx+/tAHY7G4PZeQoya4O55FF8lxSWa00lU+qpLbR09Q/7UsUDWvPzAyqsltoJao1clHTvqCwxmV0QLiw92574+HZeLbWGobtkbteBntjcPUK9wFR2mXVPoUJKOmkpPdH08Tqcs2eEWAs2+mO2PgqVHa7dR7Pc6Glp/DaWs8KIN2g9wMdh2V6oVbZNItobfRQ1ctZDSU8dTNxLK2MB78dskclUaKy2mhqH1FFbaOlmkzvkhgaxzs98kDJV+mEtikaRqfT+qrzUVlJHW2GkoqqN0Bqm0D3VccLhgtDjJtzgkbu3nhbPZ7Lb7VbKC30lOxsNBC2Cny0EsaGhvB8uAshgeilWc5NUQopO0WItVtFRNUCgpPHnG2WTwW7nj0ce5SotFsqauOrqLfSzVMX5uZ8LS9n3EjIV6ii2TSMPbtO0NDqa6ahjdK+tuUcMUpeRhrIgQ1rcDgfWJPxKyb6eF9RHUPijdLGCGPLQXNB7gHuMqqiNtgEcqxpbRa6SofUUtvpIJn/bkjha1zvvI7q+TCgFMQRCN0YjYGPJLm7eHZ759crz7tAaf3YwxGDbs8IsG3bjGMdsKsicklrR26howxtJR09OGAhgiiDQ0HGcY7ZwPwVT3Sm92NN4EXgHOY9g2nJyeO3flVsKUt+pFIpSU8Uj2SPjY58Zyxzm5LTjGR6cK3qbVbamojqaigpZp48bJJIWuc3HbBI4V6oRNoUin7vD44qDGzxQ3Zv2/W298Z9F4jo6aOSWSOCJrpjmUhgBee2T68eqrqU5JMabFZjQmhNqoTSl5eYTTt2bj3OMYz8VXFtoBA6nFFTCF7Qx0YiAaWjsCOxHwV0mFNsikWtut1DboDBb6OnpIic7IYwxufXAXutpKWtp3U9ZTxVELvtRysDmn5HhV0wo72K4ot6Gho6GDwKKmhpoh+hDGGN/AKqIYhOZxGzxS0NL8fW25zjPovahPqTR4qYIqiPw542SMyDte0EZByDz6HBVOuoqSvpzT11NDVQuOTHNGHtPyPCuAnCAoU9HTU4LYIIom7Q3DGBvA7DjyHKo09otlMCKe30kIdKJiGQtaDIOzuB3+KvUS2RRZ19qt1wa1tfRU1UGO3NE0TX4PwyEntVtndA6agpZXU/5kvhaTH/F44+SvEU2xSLGrs9rq6Y0tVbqOaAuLzFJC1zS49zgjGVcUlLT0lO2npYY4YWDDI42hrWj0AHCrJhR2oIptgibO+dsbBLIAHvDQC4Dtk+fcr09jZGFj2tc1wwQRkEL0iMFlb7TbbeHigoKWk8Tl3gwtbu+/A5R9qtrqqSqNBSmeRu18hhbucDwQT3KvcIpt2KXoWlZbKCsaxtVR01QI/zYliDtn3Z7KnXUs7KCdloFJTVLzua6WEuYXZGdzWlpOQMdwr9MBLYpGg27Rl2q9SWy7X+otEUFqkfNS0VrpHRMfK5pYJJHOcSSGkgAAdytyr7Vba+SOSuoKWqfH+bdNEHlv3Z7K8wPRFMpyk7IUUjGahp7nNbTHaJ6GKfI4rIHSxPb5tIDmkZ45+HZazp/SF0Oq6PUmoK63GW308sFFRW2mdFBEZcb3kucS5xDQPLHPqt5wEAwkZyimkGkykynhZG6JkcbY3ElzQ0YOe+R8clWtLZbTSRzR0tsooGT8Stjga0SfxgBz381f4RRbJpFlRWm2UMccdFb6SmZE4uY2KFrQ0kYJGBxn4KKSzWqjrJKyjttHT1MvEkscLWvcPiRyr5EtikGjAwpRFACkdlCkdkJQREQkIiIAiIgCIiAFQpKhCGUap0kdPI9nLg0lo+KxtBW1stS2OWPDD3OwhZdYrVk1ZTafrJ7fuFU1n5MtbuOcjyWuLl7K6mWRf776GC1/abhcqmlkoqd0oYxwdhwGPxK1d2l76P975Pk5v61R/ZHrjJINX86T/8AVbv09rbxX22olvBeZWy7Wb4dh27QfQL25PUaHCvstL72eUo4dVl4tNnjp5bq630tUysgfCXyAtDscjHwWfuNIKnwc5Jjfu+1jywqdXNUso5XU4L5QDtHqeFjzV3MVULfyjml4DzsGAM+q8uW7NkeXhHa3HFBYuT5V6uRPj9q6lDsD++Nt7n+DCvp154BXyl7SNSD1xvFVR1QL4XU+2SF/LHsiYCMjsQ4LVG6w1WRg6juv/Wn/rX0UNFLUYMck64PPyZVCcl9T7QqKh8UTntHIHxVkLtVHy/nK+PTq3VBOf2RXX/rT/1p+y3VP/vFdf8Arb/1q0fC2ly0YvM30PrqtulTFLHNEzDycHAPPCvqbVNQxg8Wllc71C+OHaq1Y9vF/upHwqX/AK17iv8ArNxAbd7wc9v3Q/n+dRPwtS60VWWcXakfZrdXEd6Gde/2X5aQKCcnHmQvjll01877Nwvnynf+tVmVuvyc++30n/nn/rWX8Gh6o0+KyfzH1fU3q4V8oD2mCIfotzz95T3+f1P86+V46nqCeRVX35TP/WqzZ+oPb3i+/wDTv/WtY+GqKpNFPNm+rs+oxXznzP8AOruKoe9oy5w+4lfKzD1EP+Ovv/Tu/WrtkHUsgbTqB3+nf+tRLw619pErM7o6x7RLy/p4PrEj3yPGT8HLePZw46QWj75v61y+aa+zdR7hT+711Fe6qHcDsleXNz5HBPxX090Boqq39LbXR10D6eojMu+J/wBpuZHEZ+RC4vEcaxaVRu+Ts0Tcsrf0M/PMS+WAtf4ZmO95b8e3f/8A3CyUkFN7o5uxgj291TuNNM6KTwA14kxuafX1Cxj6aqNMGbJi4OxsxxheQqklzR2tuLdq7ItlZHJV0sT5ZBLHlrQI+CPicrYtzfVY+lpN8zKqWFsb2s2sbnJaPPKvfDJ81nlcZPg0wqUVye9w9VKphhBHKhkb2zvkMhc09m+iypGxWRQFKggIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiICCEwpRCQowpRAQFKIhAREQBERAEREAREQBERAEREAREQBERAEREAREQBSOyhSOyEoIiISEREAREQBERACoUlQhDCIiAKlNM2MgOBIPoqqsrhTzzOYYXhoA5VopN8kSdLg9mog/eH8FxX2jurMWl6J2mbJOGXqpjBlkx/seJ2Rkfwj5ei68KGs/wDWj8VxLrX0HvGu9YC/26+UdMXU7IpY52O4LfQjyIIXfo/h45k8jtI5cryyhUUfLj5RK4udUBz3HLnPfkn598/FeR4X7+Hj+EV24eyxqkf5SWj+RJ+pem+yzqvz1Haf5Mn6l9K/FdM+sjzPg8q7HEgYQSS+LjtgqWOh3cSQtz598fzrtx9lvVXb9kdp/kSfqUf3LWqsf7o7T/Ik/Uo/iml9SPhMnocypKqwMgZE+c8DB/JDn/tLLwXnTzAPy+CDn803/vrd2+y1qnz1Haf5En6l6Hst6pH+Ulp/kSfqVf4lpf5g9Hl9DWaXU2nmEF1Q0f6Nv/fWXgv9iqts1O+aQNG0ltOHDPyer8+y5qrBxqO0/wAmT9Sq03s0a3pWltPqm2RAnJDTIMn8EXiGkvmZV6PL6CgvtqjIy2bn/kQ/76yMWoLFFM6eaR8UJaN5kgDBny/T9Mq1Hs69Qh21hQD/ADpf1KJfZv1vUxeFV6tt8rCclj/EcM+Xkoev0X84+Fz30M3Raq0ayQyfStLhzcYcWd/X7av6XVGjWZa680OzOWgyR5x6fbWps9mPUrf8obT8mP8A1KoPZo1KP8oLV/If+pY/F6N/+T+v9i/w+b+U3mj1do9kRj+nKED9H8swcfH66yVq11p6inD2aitmwn6zTVM5H4rm7fZr1MP9/wC0n/Nk/UpPs26n/wCHLQflJ+pUll0E7TydfcvDFng7UT6Ps9wo7tb4a+31LKqmmBLJI37mnHfkKpHIDWkNlY7DMbd/OQfRYLpzpio0po+3WF9S2odSMO+RuQC5zi44+HKytvskdNcXV/iyGQlxwcY5Xz8lBOVPjseneR7ePcyOHAeamV0jIHOjZveBw31VXyT5rns3ohhcWNLhhxHI9F6RFACIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCkdlCkdkJQREQkIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgP/Z" alt="Inteligência Artificial na Educação" style="max-width:600px; width:95%; margin-bottom:24px;">
+      <p style="font-family:'Playfair Display',serif; font-size:1.2rem; font-weight:700; color:#1a1a2e; margin-bottom:0;">Feedback Individualizado: Cenários de Aprendizagem</p>
+    </div>
+    <div class="home-cards">
+      <div class="role-card formador" onclick="showScreen('teacher-login')">
+        <div class="icon">🎓</div>
+        <h2>Sou Formador</h2>
+        <p>Aceder ao painel para gerir formandos e escrever feedback.</p>
+      </div>
+      <div class="role-card formador" onclick="showScreen('student-login')">
+        <div class="icon">📋</div>
+        <h2>Sou Formando</h2>
+        <p>Ver o meu feedback com a password recebida pelo formador.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════ TEACHER LOGIN ════ -->
+<div id="teacher-login" class="screen">
+  <div class="top-bar">
+    <span class="logo">FeedbackPrivado</span>
+    <button class="btn btn-ghost" onclick="showScreen('home')">← Voltar</button>
+  </div>
+  <div class="login-wrap">
+    <div class="login-box">
+      <h2>Área do Formador</h2>
+      <p>Introduz a tua password de acesso ao painel.</p>
+      <div class="form-group">
+        <label>Password do Formador</label>
+        <input type="password" id="teacher-pwd" placeholder="••••••••" onkeydown="if(event.key==='Enter') teacherLogin()">
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="teacherLogin()">Entrar no Painel</button>
+      <p class="error-msg" id="teacher-err"></p>
+    </div>
+  </div>
+</div>
+
+<!-- ════ TEACHER PANEL ════ -->
+<div id="teacher-panel" class="screen">
+  <div class="top-bar">
+    <span class="logo">FeedbackPrivado</span>
+    <span class="sync-badge"><span class="sync-dot"></span> Sincronizado</span>
+    <button class="btn btn-ghost" onclick="showScreen('home')" style="margin-left:auto">Sair</button>
+  </div>
+  <div class="teacher-layout">
+    <div class="sidebar">
+      <div class="sidebar-title">Formandos</div>
+      <div id="student-list"></div>
+      <button class="add-student-btn" onclick="openAddModal()">＋ Adicionar Formando</button>
+    </div>
+    <div class="main-content" id="teacher-main">
+      <div class="empty-state">
+        <div class="big-icon">👈</div>
+        <h3>Seleciona um formando</h3>
+        <p>Escolhe um formando na lista à esquerda para escrever ou editar o feedback.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ STUDENT LOGIN ════ -->
+<div id="student-login" class="screen">
+  <div class="top-bar">
+    <span class="logo">FeedbackPrivado</span>
+    <button class="btn btn-ghost" onclick="showScreen('home')">← Voltar</button>
+  </div>
+  <div class="login-wrap">
+    <div class="login-box">
+      <h2>Ver o meu Feedback</h2>
+      <p>Introduz a password individual que recebeste do teu formador.</p>
+      <div class="form-group">
+        <label>A tua Password</label>
+        <input type="password" id="student-pwd" placeholder="••••••••" onkeydown="if(event.key==='Enter') studentLogin()">
+      </div>
+      <button class="btn btn-gold" style="width:100%" onclick="studentLogin()">Ver Feedback</button>
+      <p class="error-msg" id="student-err"></p>
+    </div>
+  </div>
+</div>
+
+<!-- ════ STUDENT VIEW ════ -->
+<div id="student-view" class="screen">
+  <div class="top-bar">
+    <span class="logo">FeedbackPrivado</span>
+    <span class="sync-badge"><span class="sync-dot"></span> Dados em tempo real</span>
+    <button class="btn btn-ghost" onclick="showScreen('home')" style="margin-left:auto">Sair</button>
+  </div>
+  <div class="student-view">
+    <div class="feedback-card" id="feedback-card"></div>
+  </div>
+</div>
+
+<!-- ════ ADD STUDENT MODAL ════ -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <h3>Novo Formando</h3>
+    <p>Preenche os dados. A password será gerada automaticamente.</p>
+    <div class="form-group">
+      <label>Nome</label>
+      <input type="text" id="new-name" placeholder="Ex: Ana Ferreira">
+    </div>
+    <div class="form-group">
+      <label>Password personalizada (opcional)</label>
+      <input type="text" id="new-pwd" placeholder="Deixa vazio para gerar automaticamente">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeAddModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="addStudent()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ TOAST ════ -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ════ CONFIG ════
+const TEACHER_PWD_DEFAULT = 'formacao*2020';
+const STORAGE_KEY_CONFIG   = 'fbpriv:config';
+const STORAGE_KEY_STUDENTS = 'fbpriv:students';
+const WEIGHTS = [0.05, 0.15, 0.20, 0.05, 0.15, 0.20, 0.20];
+const CRIT_NAMES = ['Enquadramento','Objetivos','Produto Final','Tecnologias','Metodologia','Papel do Professor','Reflexão Final'];
+
+// ════ LOADING ════
+function showLoading(msg = 'A carregar...') {
+  document.getElementById('loading-overlay').style.display = 'flex';
+  document.getElementById('loading-msg').textContent = msg;
+}
+
+function hideLoading() {
+  document.getElementById('loading-overlay').style.display = 'none';
+}
+
+// ════ SHARED STORAGE HELPERS ════
+// All data is stored shared=true so every device sees the same data
+
+async function getConfig() {
+  try {
+    const r = await window.storage.get(STORAGE_KEY_CONFIG, true);
+    return r ? JSON.parse(r.value) : { teacherPwd: TEACHER_PWD_DEFAULT };
+  } catch {
+    return { teacherPwd: TEACHER_PWD_DEFAULT };
+  }
+}
+
+async function saveConfig(cfg) {
+  await window.storage.set(STORAGE_KEY_CONFIG, JSON.stringify(cfg), true);
+}
+
+async function getStudents() {
+  try {
+    const r = await window.storage.get(STORAGE_KEY_STUDENTS, true);
+    return r ? JSON.parse(r.value) : [];
+  } catch {
+    return [];
+  }
+}
+
+async function saveStudents(students) {
+  await window.storage.set(STORAGE_KEY_STUDENTS, JSON.stringify(students), true);
+}
+
+// ════ UTILS ════
+function initials(name) {
+  return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
+
+function genPwd() {
+  const adj = ['Azul','Verde','Solar','Luna','Vento','Mar','Rio','Alto','Bosque','Nuvem'];
+  const num = Math.floor(10 + Math.random() * 90);
+  return adj[Math.floor(Math.random() * adj.length)] + num;
+}
+
+function calcNotaVal(criterios) {
+  if (!criterios || criterios.filter(v => v !== '' && v !== null && v !== undefined).length < 7) return null;
+  return criterios.reduce((acc, v, i) => acc + (parseFloat(v) || 0) * WEIGHTS[i], 0).toFixed(2);
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ════ SCREENS ════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ════ TEACHER LOGIN ════
+async function teacherLogin() {
+  const pwd = document.getElementById('teacher-pwd').value;
+  showLoading('A verificar...');
+  const cfg = await getConfig();
+  hideLoading();
+  if (pwd === cfg.teacherPwd) {
+    document.getElementById('teacher-pwd').value = '';
+    document.getElementById('teacher-err').textContent = '';
+    await renderSidebar();
+    showScreen('teacher-panel');
+  } else {
+    document.getElementById('teacher-err').textContent = 'Password incorreta.';
+  }
+}
+
+// ════ SIDEBAR ════
+let selectedId = null;
+
+async function renderSidebar() {
+  const list = document.getElementById('student-list');
+  const students = await getStudents();
+  list.innerHTML = '';
+
+  if (students.length === 0) {
+    list.innerHTML = '<p style="font-size:0.8rem;color:var(--muted);padding:8px 12px;line-height:1.5">Ainda não tens formandos.<br>Adiciona o primeiro!</p>';
+    return;
+  }
+
+  students.forEach(s => {
+    const hasFeedback = !!(s.feedback || s.nota);
+    const div = document.createElement('div');
+    div.className = 'student-item' + (s.id === selectedId ? ' active' : '');
+    div.onclick = () => selectStudent(s.id);
+    div.innerHTML = `
+      <div class="student-avatar">${initials(s.name)}</div>
+      <div class="student-info">
+        <div class="student-name">${s.name}</div>
+        <div class="student-status">
+          <span class="dot ${hasFeedback ? 'dot-green' : 'dot-gray'}"></span>
+          ${hasFeedback ? 'Com feedback' : 'Sem feedback'}
+        </div>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+async function selectStudent(id) {
+  selectedId = id;
+  await renderSidebar();
+  const students = await getStudents();
+  const s = students.find(x => x.id === id);
+  if (!s) return;
+
+  const main = document.getElementById('teacher-main');
+  const notaVal = calcNotaVal(s.criterios);
+
+  main.innerHTML = `
+    <div class="feedback-editor">
+      <h2>${s.name}</h2>
+      <div class="subtitle">
+        <span>Password:</span>
+        <span class="password-display">
+          <span id="pwd-show">${s.password}</span>
+          <button class="copy-btn" onclick="copyPwd('${s.password}')" title="Copiar">📋</button>
+        </span>
+      </div>
+
+      <div class="card-block">
+        <h3>📝 Comentários</h3>
+        <div class="toolbar">
+          <button type="button" class="tbtn" onclick="fmt('bold')"><b>B</b></button>
+          <button type="button" class="tbtn" onclick="fmt('italic')"><i>I</i></button>
+          <span class="tsep"></span>
+          <button type="button" class="tbtn" onclick="fmt('insertUnorderedList')">• Lista</button>
+        </div>
+        <div id="fb-text" class="rich-editor" contenteditable="true"
+          data-placeholder="Escreve o teu feedback detalhado aqui…"
+          onkeydown="handleEditorEnter(event)">${s.feedback || ''}</div>
+      </div>
+
+      <div class="card-block">
+        <h3>🥇 Avaliação por Critérios</h3>
+        <table class="criterios-table">
+          <thead><tr><th>CRITÉRIO</th><th>PESO</th><th>CLASSIFICAÇÃO (0–10)</th></tr></thead>
+          <tbody>
+            ${CRIT_NAMES.map((name, i) => `
+              <tr>
+                <td><strong>${name}</strong></td>
+                <td class="pct">${Math.round(WEIGHTS[i]*100)}%</td>
+                <td><input class="nota-input crit-input" type="number" id="crit-${i}" min="0" max="10" step="0.5"
+                  value="${s.criterios?.[i] ?? ''}" oninput="calcNota()"></td>
+              </tr>
+            `).join('')}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2"><strong>Nota Final</strong></td>
+              <td><strong id="nota-final-display" style="font-size:1.3rem;color:#1e40af;font-family:'Playfair Display',serif;">
+                ${notaVal !== null ? notaVal + ' / 10' : '— / 10'}
+              </strong></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="save-row">
+        <button class="btn btn-primary" onclick="saveFeedback('${id}')">💾 Guardar Feedback</button>
+        <button class="btn btn-ghost" onclick="previewFeedback('${id}')">👁 Pré-visualizar</button>
+        <button class="btn btn-danger" onclick="deleteStudent('${id}')">🗑 Remover</button>
+      </div>
+    </div>
+  `;
+}
+
+async function saveFeedback(id) {
+  showLoading('A guardar...');
+  const students = await getStudents();
+  const idx = students.findIndex(x => x.id === id);
+  if (idx < 0) { hideLoading(); return; }
+
+  const fbEl = document.getElementById('fb-text');
+  students[idx].feedback = fbEl ? fbEl.innerHTML : '';
+
+  const crits = WEIGHTS.map((_, i) => {
+    const el = document.getElementById('crit-' + i);
+    return el && el.value !== '' ? parseFloat(el.value) : '';
+  });
+  students[idx].criterios = crits;
+
+  const filled = crits.filter(v => v !== '');
+  students[idx].nota = filled.length === 7
+    ? crits.reduce((acc, v, i) => acc + (parseFloat(v) || 0) * WEIGHTS[i], 0).toFixed(2)
+    : '';
+
+  await saveStudents(students);
+  await renderSidebar();
+  hideLoading();
+  toast('✅ Feedback guardado e sincronizado!');
+}
+
+async function previewFeedback(id) {
+  await saveFeedback(id);
+  const students = await getStudents();
+  const s = students.find(x => x.id === id);
+  showFeedbackCard(s);
+  showScreen('student-view');
+}
+
+async function deleteStudent(id) {
+  if (!confirm('Tens a certeza que queres remover este formando?')) return;
+  showLoading('A remover...');
+  let students = await getStudents();
+  students = students.filter(x => x.id !== id);
+  await saveStudents(students);
+  selectedId = null;
+  await renderSidebar();
+  document.getElementById('teacher-main').innerHTML = `
+    <div class="empty-state">
+      <div class="big-icon">👈</div>
+      <h3>Seleciona um formando</h3>
+      <p>Escolhe um formando na lista à esquerda.</p>
+    </div>`;
+  hideLoading();
+  toast('🗑 Formando removido.');
+  showScreen('teacher-panel');
+}
+
+function copyPwd(pwd) {
+  navigator.clipboard.writeText(pwd).then(() => toast('📋 Password copiada!'));
+}
+
+// ════ ADD STUDENT ════
+function openAddModal() { document.getElementById('add-modal').classList.add('open'); }
+function closeAddModal() {
+  document.getElementById('add-modal').classList.remove('open');
+  document.getElementById('new-name').value = '';
+  document.getElementById('new-pwd').value = '';
+}
+
+async function addStudent() {
+  const name = document.getElementById('new-name').value.trim();
+  if (!name) { alert('Insere um nome.'); return; }
+  const pwd = document.getElementById('new-pwd').value.trim() || genPwd();
+
+  showLoading('A adicionar formando...');
+  const students = await getStudents();
+
+  if (students.find(s => s.password.toLowerCase() === pwd.toLowerCase())) {
+    hideLoading();
+    alert('Essa password já está em uso. Escolhe outra.');
+    return;
+  }
+
+  students.push({
+    id: Date.now().toString(),
+    name,
+    password: pwd,
+    feedback: '',
+    nota: '',
+    criterios: []
+  });
+
+  await saveStudents(students);
+  closeAddModal();
+  await renderSidebar();
+  hideLoading();
+  toast(`✅ ${name} adicionado/a! Password: ${pwd}`);
+}
+
+// ════ STUDENT LOGIN ════
+async function studentLogin() {
+  const pwd = document.getElementById('student-pwd').value.trim();
+  if (!pwd) {
+    document.getElementById('student-err').textContent = 'Introduz a tua password.';
+    return;
+  }
+
+  showLoading('A verificar password...');
+  const students = await getStudents();
+  hideLoading();
+
+  const s = students.find(x => x.password.toLowerCase() === pwd.toLowerCase());
+  if (s) {
+    document.getElementById('student-pwd').value = '';
+    document.getElementById('student-err').textContent = '';
+    showFeedbackCard(s);
+    showScreen('student-view');
+  } else {
+    document.getElementById('student-err').textContent = 'Password inválida. Confirma com o teu formador.';
+  }
+}
+
+function showFeedbackCard(s) {
+  const hasFeedback = !!(s.feedback || s.nota);
+  const notaVal = calcNotaVal(s.criterios);
+  const card = document.getElementById('feedback-card');
+
+  const criteriosHtml = s.criterios && s.criterios.filter(v => v !== '').length === 7 ? `
+    <div class="criterios-view" style="margin-top:24px;">
+      <div class="feedback-label" style="margin-bottom:12px;">Avaliação por Critérios</div>
+      ${CRIT_NAMES.map((name, i) => `
+        <div class="crit-row">
+          <div>
+            <div class="crit-name">${name}</div>
+            <div class="crit-pct">${Math.round(WEIGHTS[i]*100)}%</div>
+          </div>
+          <div class="crit-score">${s.criterios[i]} / 10</div>
+        </div>
+      `).join('')}
+    </div>
+  ` : '';
+
+  const today = new Date().toLocaleDateString('pt-PT', { day: '2-digit', month: 'long', year: 'numeric' });
+
+  card.innerHTML = `
+    <div class="print-area">
+      <div class="header">
+        <div class="big-avatar">${initials(s.name)}</div>
+        <div>
+          <h2>${s.name}</h2>
+          <p>Feedback do Formador</p>
+        </div>
+        ${notaVal !== null ? `
+          <div class="nota-badge">
+            <span style="font-size:0.7rem;opacity:0.7">NOTA FINAL</span>
+            <span class="num">${notaVal}/10</span>
+          </div>
+        ` : ''}
+      </div>
+
+      ${hasFeedback ? `
+        ${s.feedback ? `
+          <div class="feedback-label">Comentários</div>
+          <div class="feedback-text">${s.feedback}</div>
+        ` : ''}
+        ${criteriosHtml}
+      ` : `
+        <div class="no-feedback-msg">
+          <div style="font-size:2rem;margin-bottom:12px">⏳</div>
+          <p>O teu feedback ainda não está disponível.<br>Volta mais tarde!</p>
+        </div>
+      `}
+
+      <div class="print-footer">
+        Relatório de Feedback Individualizado · ${s.name} · Gerado em ${today}
+      </div>
+
+      ${hasFeedback ? `
+        <button class="print-btn" onclick="window.print()">
+          🖨️ Imprimir / Guardar como PDF
+        </button>
+      ` : ''}
+    </div>
+  `;
+}
+
+// ════ EDITOR ════
+function fmt(cmd) {
+  document.getElementById('fb-text').focus();
+  document.execCommand(cmd, false, null);
+}
+
+function handleEditorEnter(e) {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  document.execCommand('insertHTML', false, '<br>');
+}
+
+function calcNota() {
+  const vals = WEIGHTS.map((_, i) => parseFloat(document.getElementById('crit-' + i)?.value) || 0);
+  const total = vals.reduce((acc, v, i) => acc + v * WEIGHTS[i], 0);
+  const el = document.getElementById('nota-final-display');
+  if (el) el.textContent = total.toFixed(2) + ' / 10';
+}
+
+// ════ MIGRATED DATA ════
+const MIGRATED_STUDENTS = [{"id":"1772211219943","name":"Helena Salomé","password":"Solar34","feedback":"<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">Olá, Helena\nSalomé,<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">O cenário\napresentado é claro, coerente e cumpre a estrutura solicitada.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Pontos\nFortes</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Enquadramento\nClaro:</b> A Helena identificou todos os elementos necessários (disciplina, ano,\nduração e tema).<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Escolha de\nMetodologia: </b>A opção pela aprendizagem por descoberta é muito adequada ao uso\nda IA, pois coloca o aluno no centro da pesquisa e da construção do saber.<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">Interatividade\ne Diversidade de Produtos: A proposta permite que os alunos escolham o formato\ndo resumo (vídeo, apresentação, texto), o que promove a autonomia e a\ndiferenciação pedagógica.<o:p></o:p></p><b><br>\n\n</b><p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Pontos\nFracos&nbsp;</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Objetivos de\nAprendizagem Genéricos:</b> O objetivo está muito focado no \"uso da IA\" e\nde forma vaga (\"aquisição de novos conteúdos\"). Seria importante\nespecificar competências matemáticas concretas aliadas a competências de\nliteracia de IA.<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Risco de\n\"Alucinação\" da IA: </b>Em Matemática, a IA (como o ChatGPT ou\nMagicSchool) frequentemente comete erros em cálculos complexos ou\ndemonstrações. O plano menciona a validação pela professora, mas não detalha\ncomo os alunos serão ensinados a verificar esses resultados.<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Tecnologias\nutilizadas: </b>apenas refere que vai usar a ferramenta MagicSchool para a criação\ndo questionário; não identifica as ferramentas que os alunos vão usar.<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Papel do\nProfessor pouco detalhado: </b>Para um cenário de 100 minutos, o papel do professor\ndeve ser mais ativo na monitorização das etapas.<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Gestão do\nTempo: </b>Duas aulas de 50 minutos pode ser um tempo otimista para: aprender o\nconteúdo via IA, criar um produto final, apresentar e ainda responder a um\nquestionário final.<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><o:p>&nbsp;</o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Recomendações para melhorar este cenário</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Foco no\n\"Prompt Engineering\":</b> Em vez de apenas dar \"sugestões de alguns\nprompts\", poderia pedir aos alunos que criassem os seus próprios e depois\ncomparassem qual prompt gerou a explicação mais correta sobre progressões\ngeométricas.<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Verificação\nde Factos (Fact-Checking): </b>Criar uma etapa obrigatória onde os alunos têm de\nprovar, através de cálculos manuais, que o resultado que a IA deu na ficha de\ntrabalho está correto. Isso reforça o pensamento crítico.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Sugestões de\nferramentas a usar pelos alunos para a realização das tarefas:</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">WolframAlpha:\nPara validar resultados matemáticos com precisão simbólica que os LLMs (como o\nChatGPT) por vezes falham.<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">Para\napresentação do resumo e dois exercícios: Gamma; VidNoz; NotebookLM, Canva IA.<o:p></o:p></p>\n\n<br><p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">Estou\ndisponível para qualquer esclarecimento adicional.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">Continuação\nde um excelente trabalho.<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">A formadora\nCarla Oliveira<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><o:p>&nbsp;</o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><o:p>&nbsp;</o:p></p>","nota":"10.00","notaText":"","criterios":[10,10,10,10,10,10,10]},{"id":"1772211302116","name":"Hélia Gamito","password":"Azul85","feedback":"<p class=\"MsoNormal\">Olá, Hélia Gamito,<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">O cenário apresentado é extremamente sensível e demonstra\numa excelente capacidade de adaptação tecnológica a contextos de inclusão. É um\nexemplo claro de como a IA pode ser humanizada para responder a necessidades\nsensoriais e sociais específicas.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fortes</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Pertinência do Tema: </b>A escolha de trabalhar o recreio e a\nhipersensibilidade sensorial é de uma enorme utilidade prática para o bem-estar\ndos alunos.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Adaptação Inclusiva: </b>A inclusão de estratégias para alunos não-verbais\n(pictogramas, apontar, comunicação aumentativa) é um ponto alto do trabalho.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Mediação Pedagógica:</b> A forma como a Hélia descreve a\nsimplificação das respostas da IA (selecionar apenas 3 ideias claras) demonstra\numa compreensão perfeita do papel do professor.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Estrutura das Sessões:</b> As três sessões estão bem\nsequenciadas, partindo da identificação do problema até à criação de uma\nsolução concreta.<o:p></o:p></p><b><br>\n\n</b><p class=\"MsoNormal\"><b>Pontos Fracos </b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Interação Direta com a IA: </b>O papel da IA parece estar muito\ncentrado no professor que escreve no quadro. Poderia explorar-se uma forma de\nos alunos \"sentirem\" que a IA está a responder-lhes diretamente,\ntalvez através de voz (text-to-speech) para quem tem dificuldades de leitura.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Duração Prevista:</b> O trabalho indica três sessões de 40/45\nminutos. Dado o público-alvo e a necessidade de tempos de resposta alargados, a\ngestão do tempo para criar um \"Produto Final\" na 3.ª sessão pode ser\napertada.<o:p></o:p></p><b><br>\n\n</b><p class=\"MsoNormal\"><b>Recomendações para melhorar este cenário</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>IA Geradora de Imagens: </b>Em vez de apenas usar o ChatGPT para\ntexto, utilize ferramentas para gerar imagens personalizadas do \"Cantinho\nCalmo\" idealizado pelos alunos. Isso ajudaria na previsibilidade visual.\nPode gerar vários prompt para gerar imagens com o que os alunos vão dizendo.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Literacia de IA: </b>Pode explicar aos alunos, de forma muito\nsimples, que o computador é como um \"amigo que leu muitos livros\" e\nque nos ajuda a pensar em soluções quando estamos bloqueados.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Ferramentas de Apoio:<o:p></o:p></p>\n\n<p class=\"MsoNormal\"></p><span style=\"font-size: 0.95rem;\"><b>Ferramentas de imagem:</b> Adobe Firefly, NanoBanana,\nLeonoardo.ai ou o Canva Magic Media</span><br><span style=\"font-size: 0.95rem;\">Pictalk: </span><a href=\"file:///C:/Users/CarlaOliveira/Dropbox/FORMAC%C3%83O/2026/IA/Rotina%20e%20suporte%20visual%20para%20aprendizagem:%20https:/www.pictalk.org/pt/pictalk/%0d\" style=\"font-size: 0.95rem;\">Rotina\ne suporte visual para aprendizagem: https://www.pictalk.org/pt/pictalk/</a><br><span style=\"font-size: 0.95rem;\">NaturalReader: Para converter as sugestões da IA em voz,\najudando na compreensão auditiva.</span><br><p></p>\n\n\n\n<br>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">Estou\ndisponível para qualquer esclarecimento adicional.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><o:p>&nbsp;</o:p></p>\n\n<p class=\"MsoNormal\">Continuação de um excelente trabalho!<o:p></o:p></p>\n\n<p class=\"MsoNormal\">A formadora Carla Oliveira<o:p></o:p></p>","nota":"10.00","notaText":"","criterios":[10,10,10,10,10,10,10]},{"id":"1772211433077","name":"José Delgado","password":"Rio51","feedback":"<p class=\"MsoNormal\">Olá, José Delgado,<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">O cenário \"Visual Poetry: Turning Words into Images\nwith AI\" apresenta uma proposta clara, coerente e com uma excelente\narticulação entre as competências linguísticas e a literacia digital.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fortes</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Articulação Curricular: </b>O trabalho está muito bem\nfundamentado nas Aprendizagens Essenciais.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Produto Final Multimodal: </b>A criação de um Digital Poetry\nPoster é uma excelente forma de tornar a interpretação poética tangível e\nmotivadora para os alunos.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Foco na Ética:</b> É de salientar a inclusão explícita do papel\ndo professor como \"Curador ético\" e a preocupação com os direitos de\nautor do poema.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fracos / O que pode melhorar</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Avaliação de Processo: </b>O plano foca-se muito no produto\nfinal (o cartaz). Seria interessante incluir como será avaliada a interação\ncrítica do aluno com a IA durante o processo de escrita.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Sugestões de Melhoria e Ferramentas</b></p>\n\n<p class=\"MsoNormal\"><b>Exploração de Imagens (Prompting): </b>Para a criação das\nimagens, os alunos podem usar o Canva Magic Media ou o Adobe Firefly. Sugira\nque tentem criar imagens em estilos artísticos diferentes (ex: Surrealism ou Watercolour)\nque combinem com a emoção do poema escolhido.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Apoio Linguístico Específico</b>: Para além do Copilot, sugira o\nuso do Ludwig.guru ou do Write &amp; Improve da Cambridge. Estas ferramentas\najudam os alunos a verificar se as sugestões da IA são naturais em contextos\nreais de língua inglesa.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Verificação de Vocabulário: </b>Como estratégia de\n\"Curadoria Ética\", peça aos alunos que usem um dicionário online\n(como o Cambridge Dictionary) para validar se as palavras\n\"sofisticadas\" sugeridas pela IA se adequam realmente ao sentido que\npretendem dar ao poema.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><o:p>&nbsp;</o:p></p>\n\n<p class=\"MsoNormal\"><o:p>&nbsp;</o:p></p>\n\n<p class=\"MsoNormal\">Estou disponível para qualquer esclarecimento adicional.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><o:p>&nbsp;</o:p></p>\n\n<p class=\"MsoNormal\">Continuação de um excelente trabalho!<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><o:p>&nbsp;</o:p><span style=\"font-size: 0.95rem;\">A formadora Carla Oliveira</span></p>","nota":"10.00","notaText":"","criterios":[10,10,10,10,10,10,10]},{"id":"1772213377597","name":"Cristina Anjos","password":"Verde97","feedback":"<p class=\"MsoNormal\">Olá, Maria Cristina Nunes,<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">O seu cenário \"Escola Azul - Vamos Salvar os\nOceanos!\" é um exemplo de excelência na articulação interdisciplinar e no\nuso ético da tecnologia. A estrutura apresentada é sólida, detalhada e muito\nbem fundamentada.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">O seu trabalho reflete um compromisso sério com a literacia\nmediática e científica. Está de parabéns pela robustez da proposta!<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fortes</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Interdisciplinaridade: </b>A fusão entre Ciências Naturais,\nPortuguês, Cidadania e TIC cria um contexto de aprendizagem autêntico e rico.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Literacia da Informação: </b>É de louvar a tónica colocada na\nverificação de fontes (.gov, .edu) e no cruzamento de dados, combatendo\nativamente o risco de alucinação da IA.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Avaliação Abrangente: </b>A rubrica de avaliação é muito\nequilibrada, atribuindo valor não só ao produto final, mas também ao processo\nde trabalho em equipa e ao uso responsável da IA.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Impacto Social: </b>O facto de os alunos apresentarem as\npalestras a outras turmas eleva o projeto a uma tarefa de cidadania real.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Sugestões de Melhoria e Ferramentas</b></p>\n\n<p class=\"MsoNormal\"><b>Ferramenta de Organização (NotebookLM): </b>Uma vez que\nmencionou o NotebookLM, esta é a ferramenta ideal para o dossier. Os alunos\npodem carregar apenas os PDFs de fontes fiáveis que a professora\npré-selecionar, garantindo que a IA só responde com base nesses factos \"seguros\".<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Criação Visual (Canva Magic Media): </b>Para o cartaz, os alunos\npodem usar a IA do Canva para gerar imagens originais de oceanos limpos vs.\npoluídos, reforçando a mensagem persuasiva.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Diferenciação Pedagógica: </b>Para grupos com mais dificuldades,\na IA poderia ser usada especificamente para criar \"guiões de leitura\nfacilitada\" sobre os temas científicos mais complexos.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Verificação em Tempo Real: </b>Criar uma \"estação de\nverificação\" na sala onde os alunos comparam obrigatoriamente uma resposta\nda IA com um livro ou um artigo de revista.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">Estou disponível para qualquer esclarecimento adicional.<o:p></o:p></p><br><p class=\"MsoNormal\">Continuação de um excelente trabalho.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">A formadora Carla Oliveira<o:p></o:p></p>","nota":"10.00","notaText":"","criterios":[10,10,10,10,10,10,10]},{"id":"1772213881470","name":"Carlos Homero","password":"Solar62","feedback":"<p class=\"MsoNormal\">Olá, Carlos Homero,<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">O cenário \"Treinador Digital\" apresenta uma\nproposta inovadora e muito bem estruturada para o 12.º ano. É um excelente\nexemplo de como a IA pode ser integrada na Educação Física para promover a autonomia\ne o rigor científico.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fortes</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Pensamento Crítico e Validação: </b>Exigência de os alunos\nconfrontar as sugestões da IA com o conhecimento científico. A obrigatoriedade\nde justificar as alterações ao plano gerado é uma excelente estratégia\npedagógica.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Trabalho em Grupo: </b>A organização em equipas é fundamental\npara que os alunos discutam as \"alucinações\" ou imprecisões da IA,\ntransformando a análise de dados num processo colaborativo e de debate.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Foco na Ética e Segurança:</b> É de louvar a preocupação\nexplícita com a proteção de dados pessoais e a regra de nunca aceitar respostas\nda IA sem validação prévia.<o:p></o:p></p><b><br>\n\n</b><p class=\"MsoNormal\"><b>Pontos Fracos / O que pode melhorar</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Avaliação de Processo: </b>O plano descreve bem o produto final\n(Dossier), mas poderia detalhar mais como será avaliada a evolução dos prompts\ne a interação crítica do grupo com as ferramentas ao longo das 4 aulas.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Gestão de Fontes: </b>Embora mencione a validação científica,\nseria útil definir que fontes de referência (manuais escolares, sites de\nfederações, etc.) os grupos devem usar para contrastar com a IA.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Sugestões de Melhoria e Ferramentas&nbsp;</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Validação Matemática: </b>Sugira o uso do WolframAlpha para\nvalidar cálculos de metabolismo ou cargas de treino, uma vez que os modelos de\nlinguagem (LLMs) cometem frequentemente erros de cálculo nestas áreas.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Produto Final:&nbsp;&nbsp;</b>Para o produto final, os grupos podem\nusar o Canva Magic Media para criar infográficos ou tabelas visuais que\nfacilitem a leitura.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Simulação de Cenários (Prompts): I</b>ncentive os grupos a\ncriarem prompts de \"e se...\" (ex: \"e se o aluno tiver pouco\nequipamento em casa, como adaptamos o treino?\"), reforçando a capacidade\nde adaptação crítica.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">Estou disponível para qualquer esclarecimento adicional.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">Continuação de um excelente trabalho!<o:p></o:p></p>\n\n<p class=\"MsoNormal\">A formadora Carla Oliveira<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><o:p>&nbsp;</o:p></p>","nota":"10.00","notaText":"","criterios":[10,10,10,10,10,10,10]},{"id":"1772214617765","name":"Sofia Ribeiro","password":"Rio34","feedback":"<p class=\"MsoNormal\">Olá, Sofia Ribeiro,<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">O cenário\napresentado é claro, coerente e cumpre a estrutura solicitada.&nbsp;<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fortes</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><span style=\"font-size: 0.95rem;\"><b>Articulação Curricular: </b>O conteúdo gramatical está\nperfeitamente ligado às atividades propostas.</span></p>\n\n<p class=\"MsoNormal\"><b><span data-path-to-node=\"6,2,0\" data-index-in-node=\"0\">Trabalho em Grupo:</span> </b>A organização em pares ou pequenos grupos permite que os alunos colaborem na revisão linguística, utilizando a IA como um \"tutor\" que apoia a correção sem substituir o esforço de escrita do aluno.</p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fracos / O que pode melhorar</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Interatividade da Oralidade: </b>O plano foca-se muito no texto\ndigital ilustrado. Para o 6.º ano, a componente de \"falar\" a língua\npode ser muito mais potenciada com ferramentas de vídeo.<o:p></o:p></p><span data-path-to-node=\"8,1,0\" data-index-in-node=\"0\"><b>Gestão do Tempo:</b></span>&nbsp;Com 3 aulas de 50 minutos, a fase de apresentação oral de todos os grupos pode tornar-se apressada. Seria útil prever como gerir este tempo para garantir feedback a todos.<br>\n\n<br><p class=\"MsoNormal\"><b>Recomendações para melhorar este cenário</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Vidnoz AI (Avatares Falantes): </b>Em vez de um texto digital ilustrado\nou apresentação curta, os alunos podem usar o Vidnoz. Eles escrevem o texto\nsobre o passado em inglês, gravam a sua própria voz diretamente na plataforma e\ncriam um Avatar (que pode ser uma figura histórica ou um personagem do passado)\nque \"fala\" o texto deles. Isto remove a ansiedade de exposição direta\ne trabalha a dicção de forma lúdica.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>OU </b>Criação Visual (Canva Magic Media): Para o produto final\n(texto ilustrado), os alunos podem usar a IA do Canva para gerar imagens de\npersonagens ou eventos do passado que correspondam exatamente às descrições que\nescreveram em inglês.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Free Text to Speech Online</b> (<a href=\"https://ttsfree.com/#try-now\">https://ttsfree.com/#try-now</a>): Os alunos\npodem passar o texto por esta ferramenta para ouvirem a pronúncia correta do\n\"was\" e \"were\" e treinarem a entoação.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Prompts de Roleplay: </b>Sugira que os alunos usem o\nChatGPT/Gemini com o seguinte prompt: \"I want to practice my English. I am\na journalist from the past. Can you check if my questions in the Past Simple\nare correct before I record my video?\"<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">Estou disponível para qualquer esclarecimento adicional.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">Continuação de um excelente trabalho!<o:p></o:p></p>\n\n<p class=\"MsoNormal\">A formadora Carla Oliveira<o:p></o:p></p>","nota":"10.00","notaText":"","criterios":[10,10,10,10,10,10,10]},{"id":"1772219098485","name":"Amália Clara","password":"Luna98","feedback":"<p class=\"MsoNormal\">Olá Amália Clara,</p><p class=\"MsoNormal\"><br></p>O seu cenário sobre o <span data-path-to-node=\"4\" data-index-in-node=\"22\">\"Os Maias\"</span> está muito bem estruturado e cumpre os requisitos solicitados. É um trabalho sólido que demonstra uma articulação clara entre o conteúdo literário e as ferramentas digitais.<br>\n\n<br><p class=\"MsoNormal\"><b>Pontos Fortes</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Trabalho em Grupo e Papéis Definidos</b>: A atribuição de\nfunções específicas dentro de cada grupo (pesquisador, relator, criador) é uma\nexcelente prática de gestão de sala de aula, garantindo que todos os alunos\ncontribuem para o produto final.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Rigor e Avaliação: A inclusão de uma rubrica de avaliação\nque penaliza o \"uso inadequado\" da IA e valoriza o \"rigor\ncientífico.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Metodologia de Projeto: </b>A escolha da ABP (Aprendizagem\nBaseada em Projeto) é ideal para o 11.º ano, permitindo uma análise mais\nprofunda do que uma simples aula expositiva.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fracos / O que pode melhorar</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Produto Final dos Alunos: </b>Poderia especificar melhor como a\nIA entra no processo criativo — será para estruturar o índice da apresentação\nou para sugerir perguntas para o quiz?<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Interatividade Literária: </b>Para um nível de 11.º ano, o uso\nda IA apenas para organizar informação pode ser redutor.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Recomendações para melhorar este cenário</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Vidnoz AI (Sátira em Vídeo): </b>Em vez de uma apresentação de\nslides comum, os grupos poderiam usar o Vidnoz para criar um Avatar Falante de\numa personagem (ex: João da Ega ou Alencar). Os alunos gravam a sua própria voz\ncarregada de ironia e o avatar \"ganha vida\" para comentar o episódio\nde forma satírica. Isto trabalha a competência oral e a interpretação\npsicológica das personagens de forma brilhante.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Para a criação do<b> quiz </b>sugiro a ferramenta wayground.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Gamma, Canva IA ou Tome AI: </b>Para a criação da apresentação\ndigital, estas ferramentas de IA permitem gerar estruturas visuais complexas a\npartir de tópicos, poupando tempo no design e focando o esforço dos alunos na\nqualidade do conteúdo literário.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>ChatGPT/Gemini/NotebookLM para Role-play: </b>Sugira um prompt\nonde a IA assume a personalidade de Eça de Queiroz e responde a uma entrevista\nfeita pelos alunos sobre as figuras que frequentam o Hotel Central.<o:p></o:p></p>\n\n<br><p class=\"MsoNormal\">Estou disponível para qualquer esclarecimento adicional.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">Continuação de um excelente trabalho!<o:p></o:p></p>\n\n<p class=\"MsoNormal\">A formadora Carla Oliveira<o:p></o:p></p>","nota":"10.00","notaText":"","criterios":[10,10,10,10,10,10,10]},{"id":"1772223116466","name":"Sílvia Carlos","password":"Azul60","feedback":"","nota":"9.17","notaText":"","criterios":[9.5,10,10,10,10,9,7]},{"id":"1772226211393","name":"Helena Serrão","password":"Solar41","feedback":"","nota":"8.32","notaText":"","criterios":[9.5,10,7,7,8,10,7]}];
+
+// ════ INIT ════
+(async () => {
+  showLoading('A inicializar...');
+  try {
+    const cfg = await getConfig();
+    if (!cfg.teacherPwd) {
+      await saveConfig({ teacherPwd: TEACHER_PWD_DEFAULT });
+    }
+    // Migrate data: only seed if storage is empty
+    const existing = await getStudents();
+    if (existing.length === 0) {
+      await saveStudents(MIGRATED_STUDENTS);
+      console.log('✅ Dados migrados com sucesso:', MIGRATED_STUDENTS.length, 'formandos');
+    }
+  } catch (e) {
+    console.warn('Storage init error:', e);
+  }
+  hideLoading();
+  showScreen('home');
+})();
+</script>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
-</head>
-<body style="font-family:Arial;padding:40px">
-
-<h2>Importar alunos para Firebase</h2>
-<button onclick="importar()" style="padding:12px 20px;font-size:16px">
-IMPORTAR ALUNOS
-</button>
-
 <script>
-
 const firebaseConfig = {
   apiKey: "AIzaSyCwEo1iHIpqr5lYK74-7y8cXieQq5fX7As",
   authDomain: "feedback-formandos.firebaseapp.com",
@@ -29,16 +1212,22 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-const students = [{"id":"1772211219943","name":"Helena Salomé","password":"Solar34","feedback":"<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">Olá, Helena\nSalomé,<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">O cenário\napresentado é claro, coerente e cumpre a estrutura solicitada.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Pontos\nFortes</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Enquadramento\nClaro:</b> A Helena identificou todos os elementos necessários (disciplina, ano,\nduração e tema).<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Escolha de\nMetodologia: </b>A opção pela aprendizagem por descoberta é muito adequada ao uso\nda IA, pois coloca o aluno no centro da pesquisa e da construção do saber.<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">Interatividade\ne Diversidade de Produtos: A proposta permite que os alunos escolham o formato\ndo resumo (vídeo, apresentação, texto), o que promove a autonomia e a\ndiferenciação pedagógica.<o:p></o:p></p><b><br>\n\n</b><p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Pontos\nFracos&nbsp;</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Objetivos de\nAprendizagem Genéricos:</b> O objetivo está muito focado no \"uso da IA\" e\nde forma vaga (\"aquisição de novos conteúdos\"). Seria importante\nespecificar competências matemáticas concretas aliadas a competências de\nliteracia de IA.<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Risco de\n\"Alucinação\" da IA: </b>Em Matemática, a IA (como o ChatGPT ou\nMagicSchool) frequentemente comete erros em cálculos complexos ou\ndemonstrações. O plano menciona a validação pela professora, mas não detalha\ncomo os alunos serão ensinados a verificar esses resultados.<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Tecnologias\nutilizadas: </b>apenas refere que vai usar a ferramenta MagicSchool para a criação\ndo questionário; não identifica as ferramentas que os alunos vão usar.<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Papel do\nProfessor pouco detalhado: </b>Para um cenário de 100 minutos, o papel do professor\ndeve ser mais ativo na monitorização das etapas.<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Gestão do\nTempo: </b>Duas aulas de 50 minutos pode ser um tempo otimista para: aprender o\nconteúdo via IA, criar um produto final, apresentar e ainda responder a um\nquestionário final.<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><o:p>&nbsp;</o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Recomendações para melhorar este cenário</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Foco no\n\"Prompt Engineering\":</b> Em vez de apenas dar \"sugestões de alguns\nprompts\", poderia pedir aos alunos que criassem os seus próprios e depois\ncomparassem qual prompt gerou a explicação mais correta sobre progressões\ngeométricas.<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Verificação\nde Factos (Fact-Checking): </b>Criar uma etapa obrigatória onde os alunos têm de\nprovar, através de cálculos manuais, que o resultado que a IA deu na ficha de\ntrabalho está correto. Isso reforça o pensamento crítico.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Sugestões de\nferramentas a usar pelos alunos para a realização das tarefas:</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">WolframAlpha:\nPara validar resultados matemáticos com precisão simbólica que os LLMs (como o\nChatGPT) por vezes falham.<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">Para\napresentação do resumo e dois exercícios: Gamma; VidNoz; NotebookLM, Canva IA.<o:p></o:p></p>\n\n<br><p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">Estou\ndisponível para qualquer esclarecimento adicional.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">Continuação\nde um excelente trabalho.<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">A formadora\nCarla Oliveira<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><o:p>&nbsp;</o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><o:p>&nbsp;</o:p></p>","nota":"10.00","notaText":"","criterios":[10,10,10,10,10,10,10]},{"id":"1772211302116","name":"Hélia Gamito","password":"Azul85","feedback":"<p class=\"MsoNormal\">Olá, Hélia Gamito,<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">O cenário apresentado é extremamente sensível e demonstra\numa excelente capacidade de adaptação tecnológica a contextos de inclusão. É um\nexemplo claro de como a IA pode ser humanizada para responder a necessidades\nsensoriais e sociais específicas.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fortes</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Pertinência do Tema: </b>A escolha de trabalhar o recreio e a\nhipersensibilidade sensorial é de uma enorme utilidade prática para o bem-estar\ndos alunos.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Adaptação Inclusiva: </b>A inclusão de estratégias para alunos não-verbais\n(pictogramas, apontar, comunicação aumentativa) é um ponto alto do trabalho.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Mediação Pedagógica:</b> A forma como a Hélia descreve a\nsimplificação das respostas da IA (selecionar apenas 3 ideias claras) demonstra\numa compreensão perfeita do papel do professor.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Estrutura das Sessões:</b> As três sessões estão bem\nsequenciadas, partindo da identificação do problema até à criação de uma\nsolução concreta.<o:p></o:p></p><b><br>\n\n</b><p class=\"MsoNormal\"><b>Pontos Fracos </b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Interação Direta com a IA: </b>O papel da IA parece estar muito\ncentrado no professor que escreve no quadro. Poderia explorar-se uma forma de\nos alunos \"sentirem\" que a IA está a responder-lhes diretamente,\ntalvez através de voz (text-to-speech) para quem tem dificuldades de leitura.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Duração Prevista:</b> O trabalho indica três sessões de 40/45\nminutos. Dado o público-alvo e a necessidade de tempos de resposta alargados, a\ngestão do tempo para criar um \"Produto Final\" na 3.ª sessão pode ser\napertada.<o:p></o:p></p><b><br>\n\n</b><p class=\"MsoNormal\"><b>Recomendações para melhorar este cenário</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>IA Geradora de Imagens: </b>Em vez de apenas usar o ChatGPT para\ntexto, utilize ferramentas para gerar imagens personalizadas do \"Cantinho\nCalmo\" idealizado pelos alunos. Isso ajudaria na previsibilidade visual.\nPode gerar vários prompt para gerar imagens com o que os alunos vão dizendo.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Literacia de IA: </b>Pode explicar aos alunos, de forma muito\nsimples, que o computador é como um \"amigo que leu muitos livros\" e\nque nos ajuda a pensar em soluções quando estamos bloqueados.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Ferramentas de Apoio:<o:p></o:p></p>\n\n<p class=\"MsoNormal\"></p><span style=\"font-size: 0.95rem;\"><b>Ferramentas de imagem:</b> Adobe Firefly, NanoBanana,\nLeonoardo.ai ou o Canva Magic Media</span><br><span style=\"font-size: 0.95rem;\">Pictalk: </span><a href=\"file:///C:/Users/CarlaOliveira/Dropbox/FORMAC%C3%83O/2026/IA/Rotina%20e%20suporte%20visual%20para%20aprendizagem:%20https:/www.pictalk.org/pt/pictalk/%0d\" style=\"font-size: 0.95rem;\">Rotina\ne suporte visual para aprendizagem: https://www.pictalk.org/pt/pictalk/</a><br><span style=\"font-size: 0.95rem;\">NaturalReader: Para converter as sugestões da IA em voz,\najudando na compreensão auditiva.</span><br><p></p>\n\n\n\n<br>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">Estou\ndisponível para qualquer esclarecimento adicional.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><o:p>&nbsp;</o:p></p>\n\n<p class=\"MsoNormal\">Continuação de um excelente trabalho!<o:p></o:p></p>\n\n<p class=\"MsoNormal\">A formadora Carla Oliveira<o:p></o:p></p>","nota":"10.00","notaText":"","criterios":[10,10,10,10,10,10,10]},{"id":"1772211433077","name":"José Delgado","password":"Rio51","feedback":"<p class=\"MsoNormal\">Olá, José Delgado,<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">O cenário \"Visual Poetry: Turning Words into Images\nwith AI\" apresenta uma proposta clara, coerente e com uma excelente\narticulação entre as competências linguísticas e a literacia digital.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fortes</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Articulação Curricular: </b>O trabalho está muito bem\nfundamentado nas Aprendizagens Essenciais.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Produto Final Multimodal: </b>A criação de um Digital Poetry\nPoster é uma excelente forma de tornar a interpretação poética tangível e\nmotivadora para os alunos.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Foco na Ética:</b> É de salientar a inclusão explícita do papel\ndo professor como \"Curador ético\" e a preocupação com os direitos de\nautor do poema.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fracos / O que pode melhorar</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Avaliação de Processo: </b>O plano foca-se muito no produto\nfinal (o cartaz). Seria interessante incluir como será avaliada a interação\ncrítica do aluno com a IA durante o processo de escrita.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Sugestões de Melhoria e Ferramentas</b></p>\n\n<p class=\"MsoNormal\"><b>Exploração de Imagens (Prompting): </b>Para a criação das\nimagens, os alunos podem usar o Canva Magic Media ou o Adobe Firefly. Sugira\nque tentem criar imagens em estilos artísticos diferentes (ex: Surrealism ou Watercolour)\nque combinem com a emoção do poema escolhido.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Apoio Linguístico Específico</b>: Para além do Copilot, sugira o\nuso do Ludwig.guru ou do Write &amp; Improve da Cambridge. Estas ferramentas\najudam os alunos a verificar se as sugestões da IA são naturais em contextos\nreais de língua inglesa.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Verificação de Vocabulário: </b>Como estratégia de\n\"Curadoria Ética\", peça aos alunos que usem um dicionário online\n(como o Cambridge Dictionary) para validar se as palavras\n\"sofisticadas\" sugeridas pela IA se adequam realmente ao sentido que\npretendem dar ao poema.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><o:p>&nbsp;</o:p></p>\n\n<p class=\"MsoNormal\"><o:p>&nbsp;</o:p></p>\n\n<p class=\"MsoNormal\">Estou disponível para qualquer esclarecimento adicional.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><o:p>&nbsp;</o:p></p>\n\n<p class=\"MsoNormal\">Continuação de um excelente trabalho!<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><o:p>&nbsp;</o:p><span style=\"font-size: 0.95rem;\">A formadora Carla Oliveira</span></p>","nota":"10.00","notaText":"","criterios":[10,10,10,10,10,10,10]},{"id":"1772213377597","name":"Cristina Anjos","password":"Verde97","feedback":"<p class=\"MsoNormal\">Olá, Maria Cristina Nunes,<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">O seu cenário \"Escola Azul - Vamos Salvar os\nOceanos!\" é um exemplo de excelência na articulação interdisciplinar e no\nuso ético da tecnologia. A estrutura apresentada é sólida, detalhada e muito\nbem fundamentada.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">O seu trabalho reflete um compromisso sério com a literacia\nmediática e científica. Está de parabéns pela robustez da proposta!<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fortes</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Interdisciplinaridade: </b>A fusão entre Ciências Naturais,\nPortuguês, Cidadania e TIC cria um contexto de aprendizagem autêntico e rico.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Literacia da Informação: </b>É de louvar a tónica colocada na\nverificação de fontes (.gov, .edu) e no cruzamento de dados, combatendo\nativamente o risco de alucinação da IA.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Avaliação Abrangente: </b>A rubrica de avaliação é muito\nequilibrada, atribuindo valor não só ao produto final, mas também ao processo\nde trabalho em equipa e ao uso responsável da IA.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Impacto Social: </b>O facto de os alunos apresentarem as\npalestras a outras turmas eleva o projeto a uma tarefa de cidadania real.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Sugestões de Melhoria e Ferramentas</b></p>\n\n<p class=\"MsoNormal\"><b>Ferramenta de Organização (NotebookLM): </b>Uma vez que\nmencionou o NotebookLM, esta é a ferramenta ideal para o dossier. Os alunos\npodem carregar apenas os PDFs de fontes fiáveis que a professora\npré-selecionar, garantindo que a IA só responde com base nesses factos \"seguros\".<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Criação Visual (Canva Magic Media): </b>Para o cartaz, os alunos\npodem usar a IA do Canva para gerar imagens originais de oceanos limpos vs.\npoluídos, reforçando a mensagem persuasiva.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Diferenciação Pedagógica: </b>Para grupos com mais dificuldades,\na IA poderia ser usada especificamente para criar \"guiões de leitura\nfacilitada\" sobre os temas científicos mais complexos.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Verificação em Tempo Real: </b>Criar uma \"estação de\nverificação\" na sala onde os alunos comparam obrigatoriamente uma resposta\nda IA com um livro ou um artigo de revista.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">Estou disponível para qualquer esclarecimento adicional.<o:p></o:p></p><br><p class=\"MsoNormal\">Continuação de um excelente trabalho.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">A formadora Carla Oliveira<o:p></o:p></p>","nota":"10.00","notaText":"","criterios":[10,10,10,10,10,10,10]},{"id":"1772213881470","name":"Carlos Homero","password":"Solar62","feedback":"<p class=\"MsoNormal\">Olá, Carlos Homero,<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">O cenário \"Treinador Digital\" apresenta uma\nproposta inovadora e muito bem estruturada para o 12.º ano. É um excelente\nexemplo de como a IA pode ser integrada na Educação Física para promover a autonomia\ne o rigor científico.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fortes</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Pensamento Crítico e Validação: </b>Exigência de os alunos\nconfrontar as sugestões da IA com o conhecimento científico. A obrigatoriedade\nde justificar as alterações ao plano gerado é uma excelente estratégia\npedagógica.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Trabalho em Grupo: </b>A organização em equipas é fundamental\npara que os alunos discutam as \"alucinações\" ou imprecisões da IA,\ntransformando a análise de dados num processo colaborativo e de debate.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Foco na Ética e Segurança:</b> É de louvar a preocupação\nexplícita com a proteção de dados pessoais e a regra de nunca aceitar respostas\nda IA sem validação prévia.<o:p></o:p></p><b><br>\n\n</b><p class=\"MsoNormal\"><b>Pontos Fracos / O que pode melhorar</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Avaliação de Processo: </b>O plano descreve bem o produto final\n(Dossier), mas poderia detalhar mais como será avaliada a evolução dos prompts\ne a interação crítica do grupo com as ferramentas ao longo das 4 aulas.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Gestão de Fontes: </b>Embora mencione a validação científica,\nseria útil definir que fontes de referência (manuais escolares, sites de\nfederações, etc.) os grupos devem usar para contrastar com a IA.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Sugestões de Melhoria e Ferramentas&nbsp;</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Validação Matemática: </b>Sugira o uso do WolframAlpha para\nvalidar cálculos de metabolismo ou cargas de treino, uma vez que os modelos de\nlinguagem (LLMs) cometem frequentemente erros de cálculo nestas áreas.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Produto Final:&nbsp;&nbsp;</b>Para o produto final, os grupos podem\nusar o Canva Magic Media para criar infográficos ou tabelas visuais que\nfacilitem a leitura.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Simulação de Cenários (Prompts): I</b>ncentive os grupos a\ncriarem prompts de \"e se...\" (ex: \"e se o aluno tiver pouco\nequipamento em casa, como adaptamos o treino?\"), reforçando a capacidade\nde adaptação crítica.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">Estou disponível para qualquer esclarecimento adicional.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">Continuação de um excelente trabalho!<o:p></o:p></p>\n\n<p class=\"MsoNormal\">A formadora Carla Oliveira<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><o:p>&nbsp;</o:p></p>","nota":"10.00","notaText":"","criterios":[10,10,10,10,10,10,10]},{"id":"1772214617765","name":"Sofia Ribeiro","password":"Rio34","feedback":"<p class=\"MsoNormal\">Olá, Sofia Ribeiro,<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">O cenário\napresentado é claro, coerente e cumpre a estrutura solicitada.&nbsp;<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fortes</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><span style=\"font-size: 0.95rem;\"><b>Articulação Curricular: </b>O conteúdo gramatical está\nperfeitamente ligado às atividades propostas.</span></p>\n\n<p class=\"MsoNormal\"><b><span data-path-to-node=\"6,2,0\" data-index-in-node=\"0\">Trabalho em Grupo:</span> </b>A organização em pares ou pequenos grupos permite que os alunos colaborem na revisão linguística, utilizando a IA como um \"tutor\" que apoia a correção sem substituir o esforço de escrita do aluno.</p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fracos / O que pode melhorar</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Interatividade da Oralidade: </b>O plano foca-se muito no texto\ndigital ilustrado. Para o 6.º ano, a componente de \"falar\" a língua\npode ser muito mais potenciada com ferramentas de vídeo.<o:p></o:p></p><span data-path-to-node=\"8,1,0\" data-index-in-node=\"0\"><b>Gestão do Tempo:</b></span>&nbsp;Com 3 aulas de 50 minutos, a fase de apresentação oral de todos os grupos pode tornar-se apressada. Seria útil prever como gerir este tempo para garantir feedback a todos.<br>\n\n<br><p class=\"MsoNormal\"><b>Recomendações para melhorar este cenário</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Vidnoz AI (Avatares Falantes): </b>Em vez de um texto digital ilustrado\nou apresentação curta, os alunos podem usar o Vidnoz. Eles escrevem o texto\nsobre o passado em inglês, gravam a sua própria voz diretamente na plataforma e\ncriam um Avatar (que pode ser uma figura histórica ou um personagem do passado)\nque \"fala\" o texto deles. Isto remove a ansiedade de exposição direta\ne trabalha a dicção de forma lúdica.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>OU </b>Criação Visual (Canva Magic Media): Para o produto final\n(texto ilustrado), os alunos podem usar a IA do Canva para gerar imagens de\npersonagens ou eventos do passado que correspondam exatamente às descrições que\nescreveram em inglês.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Free Text to Speech Online</b> (<a href=\"https://ttsfree.com/#try-now\">https://ttsfree.com/#try-now</a>): Os alunos\npodem passar o texto por esta ferramenta para ouvirem a pronúncia correta do\n\"was\" e \"were\" e treinarem a entoação.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Prompts de Roleplay: </b>Sugira que os alunos usem o\nChatGPT/Gemini com o seguinte prompt: \"I want to practice my English. I am\na journalist from the past. Can you check if my questions in the Past Simple\nare correct before I record my video?\"<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">Estou disponível para qualquer esclarecimento adicional.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">Continuação de um excelente trabalho!<o:p></o:p></p>\n\n<p class=\"MsoNormal\">A formadora Carla Oliveira<o:p></o:p></p>","nota":"10.00","notaText":"","criterios":[10,10,10,10,10,10,10]},{"id":"1772219098485","name":"Amália Clara","password":"Luna98","feedback":"<p class=\"MsoNormal\">Olá Amália Clara,</p><p class=\"MsoNormal\"><br></p>O seu cenário sobre o <span data-path-to-node=\"4\" data-index-in-node=\"22\">\"Os Maias\"</span> está muito bem estruturado e cumpre os requisitos solicitados. É um trabalho sólido que demonstra uma articulação clara entre o conteúdo literário e as ferramentas digitais.<br>\n\n<br><p class=\"MsoNormal\"><b>Pontos Fortes</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Trabalho em Grupo e Papéis Definidos</b>: A atribuição de\nfunções específicas dentro de cada grupo (pesquisador, relator, criador) é uma\nexcelente prática de gestão de sala de aula, garantindo que todos os alunos\ncontribuem para o produto final.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Rigor e Avaliação: A inclusão de uma rubrica de avaliação\nque penaliza o \"uso inadequado\" da IA e valoriza o \"rigor\ncientífico.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Metodologia de Projeto: </b>A escolha da ABP (Aprendizagem\nBaseada em Projeto) é ideal para o 11.º ano, permitindo uma análise mais\nprofunda do que uma simples aula expositiva.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fracos / O que pode melhorar</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Produto Final dos Alunos: </b>Poderia especificar melhor como a\nIA entra no processo criativo — será para estruturar o índice da apresentação\nou para sugerir perguntas para o quiz?<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Interatividade Literária: </b>Para um nível de 11.º ano, o uso\nda IA apenas para organizar informação pode ser redutor.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Recomendações para melhorar este cenário</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Vidnoz AI (Sátira em Vídeo): </b>Em vez de uma apresentação de\nslides comum, os grupos poderiam usar o Vidnoz para criar um Avatar Falante de\numa personagem (ex: João da Ega ou Alencar). Os alunos gravam a sua própria voz\ncarregada de ironia e o avatar \"ganha vida\" para comentar o episódio\nde forma satírica. Isto trabalha a competência oral e a interpretação\npsicológica das personagens de forma brilhante.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Para a criação do<b> quiz </b>sugiro a ferramenta wayground.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Gamma, Canva IA ou Tome AI: </b>Para a criação da apresentação\ndigital, estas ferramentas de IA permitem gerar estruturas visuais complexas a\npartir de tópicos, poupando tempo no design e focando o esforço dos alunos na\nqualidade do conteúdo literário.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>ChatGPT/Gemini/NotebookLM para Role-play: </b>Sugira um prompt\nonde a IA assume a personalidade de Eça de Queiroz e responde a uma entrevista\nfeita pelos alunos sobre as figuras que frequentam o Hotel Central.<o:p></o:p></p>\n\n<br><p class=\"MsoNormal\">Estou disponível para qualquer esclarecimento adicional.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">Continuação de um excelente trabalho!<o:p></o:p></p>\n\n<p class=\"MsoNormal\">A formadora Carla Oliveira<o:p></o:p></p>","nota":"10.00","notaText":"","criterios":[10,10,10,10,10,10,10]},{"id":"1772223116466","name":"Sílvia Carlos","password":"Azul60","feedback":"<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><o:p>&nbsp;</o:p><span style=\"font-size: 0.95rem;\">Olá, Sílvia Carlos,</span></p><br>\n\n<p class=\"MsoNormal\">O seu cenário sobre \"The Different Varieties of\nEnglish\" apresenta um conceito de \"situação-problema\" muito\ninteressante e adequado ao 12.º ano . No entanto, o documento não cumpre a\nestrutura obrigatória solicitada.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fortes</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Contextualização: </b>A proposta de integrar os alunos numa\n\"equipa internacional\" para criar um recurso educativo é excelente\npara promover o denvolvimento .<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Diferenciação Pedagógica: </b>Cuidado de prever estratégias para\ndiferentes ritmos de aprendizagem.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><o:p>&nbsp;</o:p></p>\n\n<p class=\"MsoNormal\"><b>Pontos Fracos</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Identificação: </b>Falta o nome do professor.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Metodologia: </b>\"Aprendizagem baseada em projeto +\naprendizagem ativa + integração de IA\". Não existe uma metodologia chamada\n“integração de IA”. <o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Ausência do Papel do Professor: </b>O cenário não descreve a sua\nintervenção. É mediadora? Orientadora? Como apoia os grupos na interação com a\nIA?<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Falta de Reflexão Final: </b>O trabalho não apresenta a reflexão\nobrigatória sobre o impacto da IA, os cuidados éticos (autoria e uso crítico).</p>\n\n<p class=\"MsoNormal\"><b>Inviabilidade Temporal: </b>Propõe um desafio ambicioso para apenas 100 minutos. Entre a pesquisa, a interação\ncom a IA e a criação, o tempo é manifestamente insuficiente. O plano precisa de\nser estendido para pelo menos duas ou três sessões ou o produto final tem de\nser simplificado.<o:p></o:p></p><b>Curadoria Ética: </b>Adicione uma etapa onde os alunos devem verificar se o sotaque gerado pela IA não é uma \"caricatura\" ou um estereótipo ofensivo, promovendo o pensamento crítico.<br><br>\n\n<p class=\"MsoNormal\"><b>Recomendações para melhorar este cenário</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Engenharia de Prompts com a Claude (Anthropic):</b> Para a\ncriação do protótipo/app, recomendo a Claude. É superior ChatGPT, Gemini, na\nestruturação de lógica e código. <o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>ElevenLabs (Speech-to-Speech):</b> Em vez de usar vozes\nsintéticas que substituem o aluno, utilize a funcionalidade Speech-to-Speech da\nElevenLabs. Desafie os alunos a gravarem a sua própria voz e a usarem a IA\napenas para aplicar o sotaque alvo.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">Estou disponível para qualquer esclarecimento adicional.<o:p></o:p></p><br><p class=\"MsoNormal\">Continuação de um excelente trabalho!<o:p></o:p></p><p class=\"MsoNormal\">\n\n\n\n</p><p class=\"MsoNormal\">A formadora Carla Oliveira<o:p></o:p></p>\n\n<p style=\"margin-left:36.0pt\"><o:p>&nbsp;</o:p></p><p class=\"MsoNormal\"><b>SUGESTÃO DE FERRAMENTAS:</b><o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b> Chatbot que simula falantes de diferentes países</b></p><p class=\"MsoNormal\">Character.AI –\nPermite criar personagens com perfis culturais distintos.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">ChatGPT (plano\ngratuito) – Pode simular sotaques e variantes linguísticas através de prompts\nbem estruturados.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Poe – Dá acesso\ngratuito a vários modelos conversacionais.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Quiz com áudios em vários sotaques</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\">Wordwall – Permite inserir ficheiros áudio nas perguntas.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">LearningApps – Criação de quizzes multimédia.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Kahoot! – Possibilidade de integrar áudio (na versão\ngratuita com limitações).<o:p></o:p></p>\n\n<b><br></b><p class=\"MsoNormal\"><b>Mapa interativo com exemplos de fala</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\">Google My Maps – Permite adicionar pontos com áudio\nincorporado (via link).<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Genially – Criação de mapas interativos com elementos\nmultimédia.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Thinglink – Inserção de hotspots com som.<o:p></o:p></p>\n\n<br><p class=\"MsoNormal\"><b>Flashcards com voz IA</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\">Quizlet – Inclui leitura automática nos cartões.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Canva – Permite criar cartões e adicionar narração\nautomática.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">TTSFree – Geração de voz sintética para depois integrar nas\nflashcards.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">️</p><p class=\"MsoNormal\"><b>Jogo “Match the accent”</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\">Wordwall – Modelo “Match up” com áudio.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Educaplay – Associação áudio–resposta.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">LearningApps – Exercícios de correspondência.<o:p></o:p></p><b><br>\n\n</b><p class=\"MsoNormal\"><b>Mini-podcast com vozes sintéticas</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\">Spotify for Podcasters – Publicação gratuita.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">CapCut – Conversão texto-voz integrada.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">ElevenLabs – Plano gratuito limitado para vozes realistas.<o:p></o:p></p>","nota":"9.17","notaText":"","criterios":[9.5,10,10,10,10,9,7]},{"id":"1772226211393","name":"Helena Serrão","password":"Solar41","feedback":"<p class=\"MsoNormal\">Olá, Helena Serrão,<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">O seu plano sobre “O Falsificacionismo de Karl Popper”\napresenta uma estrutura pedagógica consistente e evidencia um domínio sólido\ndos conteúdos filosóficos. No entanto, no contexto específico desta formação,\nverifica-se a ausência de integração da Inteligência Artificial, que constitui\num dos eixos centrais do programa, tanto ao nível tecnológico como\nmetodológico.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fortes</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Rigor Conceptual: </b>A progressão do problema da indução para a\nfalsificabilidade está muito bem desenhada, com exemplos claros e pertinentes .<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Estrutura de Apoio:</b> As fichas de trabalho por grupos e as\nrespetivas grelhas de correção facilitam muito a avaliação formativa durante a\naula.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fracos </b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Ausência Total de ferramentas de IA: </b>O plano não cumpre o requisito de\nintegrar a Inteligência Artificial. A IA não deve ser apenas um tema, mas uma\nferramenta de apoio à aprendizagem ou criação de recursos.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Falta uma <b>metodologia ativa\n</b>onde o aluno seja o construtor do conhecimento.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Falta de Identificação: </b>O documento não identifica o nome do\nprofessor .<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Ausência de Reflexão Final: </b>Não existe a reflexão\nobrigatória sobre ética, impacto da IA e avaliação das aprendizagens.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><o:p>&nbsp;</o:p></p>\n\n<p class=\"MsoNormal\"><b>Sugestões de possíveis cenários de Aprendizagem</b><o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>1. O \"Duelo de Prompts\": Falsificar a IA\n(Metodologia Ativa: Aprendizagem por Descoberta)<o:p></o:p></b></p>\n\n<p class=\"MsoNormal\"><b>Em vez de ler sobre o que é uma teoria infalsificável, os\nalunos devem construir uma para enganar a IA.</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\">A Atividade: Dividir a turma em grupos. Cada grupo deve usar\no ChatGPT ou Claude com a missão de criar uma teoria\n\"pseudocientífica\" tão bem construída que a IA tenha dificuldade em\nrefutar.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">O Papel do Aluno: O aluno atua como um \"advogado do\ndiabo\". Cada aluno deverá ajustar os prompts até que a IA aceite a teoria\ncomo plausível.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">A Prova de Popper: Depois, os grupos trocam de lugar e o\ngrupo B tem de usar o critério de Popper para \"partir\" a teoria do\ngrupo A, forçando a IA a admitir que a teoria não é falsificável (logo, não é\nciência).<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Ferramenta: ChatGPT ou Claude.<o:p></o:p></p><b><br>\n\n</b><p class=\"MsoNormal\"><b>2. Laboratório de \"Vozes de Conjetura\"\n(Metodologia Ativa: Criação de Conteúdo)</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\">Popper diz que a ciência avança por \"conjeturas\nousadas\". Propõe-se que os alunos criem essas conjeturas.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">A Atividade: Os alunos escolh Propõe-se que os alunos criem\nessas conjeturas.em um problema atual (ex: alterações climáticas ou IA\nconsciente). Devem escrever uma \"conjetura ousada\" (uma hipótese)\nsobre esse tema.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Uso de IA (ElevenLabs): Usando a funcionalidade Speech-to-Speech,\nos alunos gravam a sua explicação da conjetura. Depois, utilizam a IA para\ntransformar a sua voz numa voz de autoridade científica (ex: um tom de\ndocumentário).<o:p></o:p></p>\n\n<p class=\"MsoNormal\">O Papel do Aluno: O exercício não é a voz, é o guião: o\naluno tem de incluir obrigatoriamente no seu áudio quais são as condições que, se\nverificadas, tornariam a sua teoria falsa. Se ele não conseguir definir como a\nsua teoria pode ser errada, o trabalho falha o critério de Popper.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Ferramenta: ElevenLabs.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>3. Curadoria Crítica com NotebookLM (Metodologia Ativa:\nPensamento Crítico)</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\">A Atividade: O professor carrega o PDF do texto original de\nPopper no NotebookLM.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">O Papel do Aluno: Em vez de fazerem perguntas à IA sobre o\nque é o falsificacionismo, os alunos devem usar a IA para gerar um\n\"Podcast\" (funcionalidade Audio Overview) sobre um tema polémico (ex:\nAstrologia).<o:p></o:p></p>\n\n<p class=\"MsoNormal\">A Ação Ativa: Os alunos devem ouvir o podcast gerado pela IA\ne auditar o conteúdo, assinalando onde é que a IA foi indutivista e onde foi\npopperiana. Eles têm de \"corrigir\" a IA com base nos textos fonte que\nestão na plataforma.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Ferramenta: NotebookLM (Google).<o:p></o:p></p><br><p class=\"MsoNormal\">Estou disponível para qualquer esclarecimento adicional.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">Continuação de um excelente trabalho!<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><o:p><span style=\"font-size: 0.95rem;\">A formadora Carla Oliveira</span>&nbsp;</o:p></p>","nota":"8.32","notaText":"","criterios":[9.5,10,7,7,8,10,7]}];
+const studentsImportData = [{"id":"1772211219943","name":"Helena Salomé","password":"Solar34","feedback":"<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">Olá, Helena\nSalomé,<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">O cenário\napresentado é claro, coerente e cumpre a estrutura solicitada.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Pontos\nFortes</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Enquadramento\nClaro:</b> A Helena identificou todos os elementos necessários (disciplina, ano,\nduração e tema).<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Escolha de\nMetodologia: </b>A opção pela aprendizagem por descoberta é muito adequada ao uso\nda IA, pois coloca o aluno no centro da pesquisa e da construção do saber.<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">Interatividade\ne Diversidade de Produtos: A proposta permite que os alunos escolham o formato\ndo resumo (vídeo, apresentação, texto), o que promove a autonomia e a\ndiferenciação pedagógica.<o:p></o:p></p><b><br>\n\n</b><p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Pontos\nFracos&nbsp;</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Objetivos de\nAprendizagem Genéricos:</b> O objetivo está muito focado no \"uso da IA\" e\nde forma vaga (\"aquisição de novos conteúdos\"). Seria importante\nespecificar competências matemáticas concretas aliadas a competências de\nliteracia de IA.<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Risco de\n\"Alucinação\" da IA: </b>Em Matemática, a IA (como o ChatGPT ou\nMagicSchool) frequentemente comete erros em cálculos complexos ou\ndemonstrações. O plano menciona a validação pela professora, mas não detalha\ncomo os alunos serão ensinados a verificar esses resultados.<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Tecnologias\nutilizadas: </b>apenas refere que vai usar a ferramenta MagicSchool para a criação\ndo questionário; não identifica as ferramentas que os alunos vão usar.<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Papel do\nProfessor pouco detalhado: </b>Para um cenário de 100 minutos, o papel do professor\ndeve ser mais ativo na monitorização das etapas.<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Gestão do\nTempo: </b>Duas aulas de 50 minutos pode ser um tempo otimista para: aprender o\nconteúdo via IA, criar um produto final, apresentar e ainda responder a um\nquestionário final.<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><o:p>&nbsp;</o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Recomendações para melhorar este cenário</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Foco no\n\"Prompt Engineering\":</b> Em vez de apenas dar \"sugestões de alguns\nprompts\", poderia pedir aos alunos que criassem os seus próprios e depois\ncomparassem qual prompt gerou a explicação mais correta sobre progressões\ngeométricas.<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Verificação\nde Factos (Fact-Checking): </b>Criar uma etapa obrigatória onde os alunos têm de\nprovar, através de cálculos manuais, que o resultado que a IA deu na ficha de\ntrabalho está correto. Isso reforça o pensamento crítico.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><b>Sugestões de\nferramentas a usar pelos alunos para a realização das tarefas:</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">WolframAlpha:\nPara validar resultados matemáticos com precisão simbólica que os LLMs (como o\nChatGPT) por vezes falham.<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">Para\napresentação do resumo e dois exercícios: Gamma; VidNoz; NotebookLM, Canva IA.<o:p></o:p></p>\n\n<br><p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">Estou\ndisponível para qualquer esclarecimento adicional.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">Continuação\nde um excelente trabalho.<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">A formadora\nCarla Oliveira<o:p></o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><o:p>&nbsp;</o:p></p>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><o:p>&nbsp;</o:p></p>","nota":"10.00","notaText":"","criterios":[10,10,10,10,10,10,10]},{"id":"1772211302116","name":"Hélia Gamito","password":"Azul85","feedback":"<p class=\"MsoNormal\">Olá, Hélia Gamito,<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">O cenário apresentado é extremamente sensível e demonstra\numa excelente capacidade de adaptação tecnológica a contextos de inclusão. É um\nexemplo claro de como a IA pode ser humanizada para responder a necessidades\nsensoriais e sociais específicas.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fortes</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Pertinência do Tema: </b>A escolha de trabalhar o recreio e a\nhipersensibilidade sensorial é de uma enorme utilidade prática para o bem-estar\ndos alunos.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Adaptação Inclusiva: </b>A inclusão de estratégias para alunos não-verbais\n(pictogramas, apontar, comunicação aumentativa) é um ponto alto do trabalho.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Mediação Pedagógica:</b> A forma como a Hélia descreve a\nsimplificação das respostas da IA (selecionar apenas 3 ideias claras) demonstra\numa compreensão perfeita do papel do professor.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Estrutura das Sessões:</b> As três sessões estão bem\nsequenciadas, partindo da identificação do problema até à criação de uma\nsolução concreta.<o:p></o:p></p><b><br>\n\n</b><p class=\"MsoNormal\"><b>Pontos Fracos </b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Interação Direta com a IA: </b>O papel da IA parece estar muito\ncentrado no professor que escreve no quadro. Poderia explorar-se uma forma de\nos alunos \"sentirem\" que a IA está a responder-lhes diretamente,\ntalvez através de voz (text-to-speech) para quem tem dificuldades de leitura.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Duração Prevista:</b> O trabalho indica três sessões de 40/45\nminutos. Dado o público-alvo e a necessidade de tempos de resposta alargados, a\ngestão do tempo para criar um \"Produto Final\" na 3.ª sessão pode ser\napertada.<o:p></o:p></p><b><br>\n\n</b><p class=\"MsoNormal\"><b>Recomendações para melhorar este cenário</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>IA Geradora de Imagens: </b>Em vez de apenas usar o ChatGPT para\ntexto, utilize ferramentas para gerar imagens personalizadas do \"Cantinho\nCalmo\" idealizado pelos alunos. Isso ajudaria na previsibilidade visual.\nPode gerar vários prompt para gerar imagens com o que os alunos vão dizendo.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Literacia de IA: </b>Pode explicar aos alunos, de forma muito\nsimples, que o computador é como um \"amigo que leu muitos livros\" e\nque nos ajuda a pensar em soluções quando estamos bloqueados.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Ferramentas de Apoio:<o:p></o:p></p>\n\n<p class=\"MsoNormal\"></p><span style=\"font-size: 0.95rem;\"><b>Ferramentas de imagem:</b> Adobe Firefly, NanoBanana,\nLeonoardo.ai ou o Canva Magic Media</span><br><span style=\"font-size: 0.95rem;\">Pictalk: </span><a href=\"file:///C:/Users/CarlaOliveira/Dropbox/FORMAC%C3%83O/2026/IA/Rotina%20e%20suporte%20visual%20para%20aprendizagem:%20https:/www.pictalk.org/pt/pictalk/%0d\" style=\"font-size: 0.95rem;\">Rotina\ne suporte visual para aprendizagem: https://www.pictalk.org/pt/pictalk/</a><br><span style=\"font-size: 0.95rem;\">NaturalReader: Para converter as sugestões da IA em voz,\najudando na compreensão auditiva.</span><br><p></p>\n\n\n\n<br>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">Estou\ndisponível para qualquer esclarecimento adicional.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><o:p>&nbsp;</o:p></p>\n\n<p class=\"MsoNormal\">Continuação de um excelente trabalho!<o:p></o:p></p>\n\n<p class=\"MsoNormal\">A formadora Carla Oliveira<o:p></o:p></p>","nota":"10.00","notaText":"","criterios":[10,10,10,10,10,10,10]},{"id":"1772211433077","name":"José Delgado","password":"Rio51","feedback":"<p class=\"MsoNormal\">Olá, José Delgado,<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">O cenário \"Visual Poetry: Turning Words into Images\nwith AI\" apresenta uma proposta clara, coerente e com uma excelente\narticulação entre as competências linguísticas e a literacia digital.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fortes</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Articulação Curricular: </b>O trabalho está muito bem\nfundamentado nas Aprendizagens Essenciais.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Produto Final Multimodal: </b>A criação de um Digital Poetry\nPoster é uma excelente forma de tornar a interpretação poética tangível e\nmotivadora para os alunos.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Foco na Ética:</b> É de salientar a inclusão explícita do papel\ndo professor como \"Curador ético\" e a preocupação com os direitos de\nautor do poema.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fracos / O que pode melhorar</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Avaliação de Processo: </b>O plano foca-se muito no produto\nfinal (o cartaz). Seria interessante incluir como será avaliada a interação\ncrítica do aluno com a IA durante o processo de escrita.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Sugestões de Melhoria e Ferramentas</b></p>\n\n<p class=\"MsoNormal\"><b>Exploração de Imagens (Prompting): </b>Para a criação das\nimagens, os alunos podem usar o Canva Magic Media ou o Adobe Firefly. Sugira\nque tentem criar imagens em estilos artísticos diferentes (ex: Surrealism ou Watercolour)\nque combinem com a emoção do poema escolhido.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Apoio Linguístico Específico</b>: Para além do Copilot, sugira o\nuso do Ludwig.guru ou do Write &amp; Improve da Cambridge. Estas ferramentas\najudam os alunos a verificar se as sugestões da IA são naturais em contextos\nreais de língua inglesa.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Verificação de Vocabulário: </b>Como estratégia de\n\"Curadoria Ética\", peça aos alunos que usem um dicionário online\n(como o Cambridge Dictionary) para validar se as palavras\n\"sofisticadas\" sugeridas pela IA se adequam realmente ao sentido que\npretendem dar ao poema.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><o:p>&nbsp;</o:p></p>\n\n<p class=\"MsoNormal\"><o:p>&nbsp;</o:p></p>\n\n<p class=\"MsoNormal\">Estou disponível para qualquer esclarecimento adicional.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><o:p>&nbsp;</o:p></p>\n\n<p class=\"MsoNormal\">Continuação de um excelente trabalho!<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><o:p>&nbsp;</o:p><span style=\"font-size: 0.95rem;\">A formadora Carla Oliveira</span></p>","nota":"10.00","notaText":"","criterios":[10,10,10,10,10,10,10]},{"id":"1772213377597","name":"Cristina Anjos","password":"Verde97","feedback":"<p class=\"MsoNormal\">Olá, Maria Cristina Nunes,<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">O seu cenário \"Escola Azul - Vamos Salvar os\nOceanos!\" é um exemplo de excelência na articulação interdisciplinar e no\nuso ético da tecnologia. A estrutura apresentada é sólida, detalhada e muito\nbem fundamentada.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">O seu trabalho reflete um compromisso sério com a literacia\nmediática e científica. Está de parabéns pela robustez da proposta!<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fortes</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Interdisciplinaridade: </b>A fusão entre Ciências Naturais,\nPortuguês, Cidadania e TIC cria um contexto de aprendizagem autêntico e rico.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Literacia da Informação: </b>É de louvar a tónica colocada na\nverificação de fontes (.gov, .edu) e no cruzamento de dados, combatendo\nativamente o risco de alucinação da IA.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Avaliação Abrangente: </b>A rubrica de avaliação é muito\nequilibrada, atribuindo valor não só ao produto final, mas também ao processo\nde trabalho em equipa e ao uso responsável da IA.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Impacto Social: </b>O facto de os alunos apresentarem as\npalestras a outras turmas eleva o projeto a uma tarefa de cidadania real.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Sugestões de Melhoria e Ferramentas</b></p>\n\n<p class=\"MsoNormal\"><b>Ferramenta de Organização (NotebookLM): </b>Uma vez que\nmencionou o NotebookLM, esta é a ferramenta ideal para o dossier. Os alunos\npodem carregar apenas os PDFs de fontes fiáveis que a professora\npré-selecionar, garantindo que a IA só responde com base nesses factos \"seguros\".<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Criação Visual (Canva Magic Media): </b>Para o cartaz, os alunos\npodem usar a IA do Canva para gerar imagens originais de oceanos limpos vs.\npoluídos, reforçando a mensagem persuasiva.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Diferenciação Pedagógica: </b>Para grupos com mais dificuldades,\na IA poderia ser usada especificamente para criar \"guiões de leitura\nfacilitada\" sobre os temas científicos mais complexos.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Verificação em Tempo Real: </b>Criar uma \"estação de\nverificação\" na sala onde os alunos comparam obrigatoriamente uma resposta\nda IA com um livro ou um artigo de revista.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">Estou disponível para qualquer esclarecimento adicional.<o:p></o:p></p><br><p class=\"MsoNormal\">Continuação de um excelente trabalho.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">A formadora Carla Oliveira<o:p></o:p></p>","nota":"10.00","notaText":"","criterios":[10,10,10,10,10,10,10]},{"id":"1772213881470","name":"Carlos Homero","password":"Solar62","feedback":"<p class=\"MsoNormal\">Olá, Carlos Homero,<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">O cenário \"Treinador Digital\" apresenta uma\nproposta inovadora e muito bem estruturada para o 12.º ano. É um excelente\nexemplo de como a IA pode ser integrada na Educação Física para promover a autonomia\ne o rigor científico.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fortes</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Pensamento Crítico e Validação: </b>Exigência de os alunos\nconfrontar as sugestões da IA com o conhecimento científico. A obrigatoriedade\nde justificar as alterações ao plano gerado é uma excelente estratégia\npedagógica.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Trabalho em Grupo: </b>A organização em equipas é fundamental\npara que os alunos discutam as \"alucinações\" ou imprecisões da IA,\ntransformando a análise de dados num processo colaborativo e de debate.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Foco na Ética e Segurança:</b> É de louvar a preocupação\nexplícita com a proteção de dados pessoais e a regra de nunca aceitar respostas\nda IA sem validação prévia.<o:p></o:p></p><b><br>\n\n</b><p class=\"MsoNormal\"><b>Pontos Fracos / O que pode melhorar</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Avaliação de Processo: </b>O plano descreve bem o produto final\n(Dossier), mas poderia detalhar mais como será avaliada a evolução dos prompts\ne a interação crítica do grupo com as ferramentas ao longo das 4 aulas.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Gestão de Fontes: </b>Embora mencione a validação científica,\nseria útil definir que fontes de referência (manuais escolares, sites de\nfederações, etc.) os grupos devem usar para contrastar com a IA.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Sugestões de Melhoria e Ferramentas&nbsp;</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Validação Matemática: </b>Sugira o uso do WolframAlpha para\nvalidar cálculos de metabolismo ou cargas de treino, uma vez que os modelos de\nlinguagem (LLMs) cometem frequentemente erros de cálculo nestas áreas.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Produto Final:&nbsp;&nbsp;</b>Para o produto final, os grupos podem\nusar o Canva Magic Media para criar infográficos ou tabelas visuais que\nfacilitem a leitura.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Simulação de Cenários (Prompts): I</b>ncentive os grupos a\ncriarem prompts de \"e se...\" (ex: \"e se o aluno tiver pouco\nequipamento em casa, como adaptamos o treino?\"), reforçando a capacidade\nde adaptação crítica.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">Estou disponível para qualquer esclarecimento adicional.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">Continuação de um excelente trabalho!<o:p></o:p></p>\n\n<p class=\"MsoNormal\">A formadora Carla Oliveira<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><o:p>&nbsp;</o:p></p>","nota":"10.00","notaText":"","criterios":[10,10,10,10,10,10,10]},{"id":"1772214617765","name":"Sofia Ribeiro","password":"Rio34","feedback":"<p class=\"MsoNormal\">Olá, Sofia Ribeiro,<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\">O cenário\napresentado é claro, coerente e cumpre a estrutura solicitada.&nbsp;<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fortes</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><span style=\"font-size: 0.95rem;\"><b>Articulação Curricular: </b>O conteúdo gramatical está\nperfeitamente ligado às atividades propostas.</span></p>\n\n<p class=\"MsoNormal\"><b><span data-path-to-node=\"6,2,0\" data-index-in-node=\"0\">Trabalho em Grupo:</span> </b>A organização em pares ou pequenos grupos permite que os alunos colaborem na revisão linguística, utilizando a IA como um \"tutor\" que apoia a correção sem substituir o esforço de escrita do aluno.</p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fracos / O que pode melhorar</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Interatividade da Oralidade: </b>O plano foca-se muito no texto\ndigital ilustrado. Para o 6.º ano, a componente de \"falar\" a língua\npode ser muito mais potenciada com ferramentas de vídeo.<o:p></o:p></p><span data-path-to-node=\"8,1,0\" data-index-in-node=\"0\"><b>Gestão do Tempo:</b></span>&nbsp;Com 3 aulas de 50 minutos, a fase de apresentação oral de todos os grupos pode tornar-se apressada. Seria útil prever como gerir este tempo para garantir feedback a todos.<br>\n\n<br><p class=\"MsoNormal\"><b>Recomendações para melhorar este cenário</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Vidnoz AI (Avatares Falantes): </b>Em vez de um texto digital ilustrado\nou apresentação curta, os alunos podem usar o Vidnoz. Eles escrevem o texto\nsobre o passado em inglês, gravam a sua própria voz diretamente na plataforma e\ncriam um Avatar (que pode ser uma figura histórica ou um personagem do passado)\nque \"fala\" o texto deles. Isto remove a ansiedade de exposição direta\ne trabalha a dicção de forma lúdica.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>OU </b>Criação Visual (Canva Magic Media): Para o produto final\n(texto ilustrado), os alunos podem usar a IA do Canva para gerar imagens de\npersonagens ou eventos do passado que correspondam exatamente às descrições que\nescreveram em inglês.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Free Text to Speech Online</b> (<a href=\"https://ttsfree.com/#try-now\">https://ttsfree.com/#try-now</a>): Os alunos\npodem passar o texto por esta ferramenta para ouvirem a pronúncia correta do\n\"was\" e \"were\" e treinarem a entoação.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Prompts de Roleplay: </b>Sugira que os alunos usem o\nChatGPT/Gemini com o seguinte prompt: \"I want to practice my English. I am\na journalist from the past. Can you check if my questions in the Past Simple\nare correct before I record my video?\"<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">Estou disponível para qualquer esclarecimento adicional.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">Continuação de um excelente trabalho!<o:p></o:p></p>\n\n<p class=\"MsoNormal\">A formadora Carla Oliveira<o:p></o:p></p>","nota":"10.00","notaText":"","criterios":[10,10,10,10,10,10,10]},{"id":"1772219098485","name":"Amália Clara","password":"Luna98","feedback":"<p class=\"MsoNormal\">Olá Amália Clara,</p><p class=\"MsoNormal\"><br></p>O seu cenário sobre o <span data-path-to-node=\"4\" data-index-in-node=\"22\">\"Os Maias\"</span> está muito bem estruturado e cumpre os requisitos solicitados. É um trabalho sólido que demonstra uma articulação clara entre o conteúdo literário e as ferramentas digitais.<br>\n\n<br><p class=\"MsoNormal\"><b>Pontos Fortes</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Trabalho em Grupo e Papéis Definidos</b>: A atribuição de\nfunções específicas dentro de cada grupo (pesquisador, relator, criador) é uma\nexcelente prática de gestão de sala de aula, garantindo que todos os alunos\ncontribuem para o produto final.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Rigor e Avaliação: A inclusão de uma rubrica de avaliação\nque penaliza o \"uso inadequado\" da IA e valoriza o \"rigor\ncientífico.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Metodologia de Projeto: </b>A escolha da ABP (Aprendizagem\nBaseada em Projeto) é ideal para o 11.º ano, permitindo uma análise mais\nprofunda do que uma simples aula expositiva.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fracos / O que pode melhorar</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Produto Final dos Alunos: </b>Poderia especificar melhor como a\nIA entra no processo criativo — será para estruturar o índice da apresentação\nou para sugerir perguntas para o quiz?<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Interatividade Literária: </b>Para um nível de 11.º ano, o uso\nda IA apenas para organizar informação pode ser redutor.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Recomendações para melhorar este cenário</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Vidnoz AI (Sátira em Vídeo): </b>Em vez de uma apresentação de\nslides comum, os grupos poderiam usar o Vidnoz para criar um Avatar Falante de\numa personagem (ex: João da Ega ou Alencar). Os alunos gravam a sua própria voz\ncarregada de ironia e o avatar \"ganha vida\" para comentar o episódio\nde forma satírica. Isto trabalha a competência oral e a interpretação\npsicológica das personagens de forma brilhante.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Para a criação do<b> quiz </b>sugiro a ferramenta wayground.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Gamma, Canva IA ou Tome AI: </b>Para a criação da apresentação\ndigital, estas ferramentas de IA permitem gerar estruturas visuais complexas a\npartir de tópicos, poupando tempo no design e focando o esforço dos alunos na\nqualidade do conteúdo literário.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>ChatGPT/Gemini/NotebookLM para Role-play: </b>Sugira um prompt\nonde a IA assume a personalidade de Eça de Queiroz e responde a uma entrevista\nfeita pelos alunos sobre as figuras que frequentam o Hotel Central.<o:p></o:p></p>\n\n<br><p class=\"MsoNormal\">Estou disponível para qualquer esclarecimento adicional.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">Continuação de um excelente trabalho!<o:p></o:p></p>\n\n<p class=\"MsoNormal\">A formadora Carla Oliveira<o:p></o:p></p>","nota":"10.00","notaText":"","criterios":[10,10,10,10,10,10,10]},{"id":"1772223116466","name":"Sílvia Carlos","password":"Azul60","feedback":"<p class=\"MsoNormal\" style=\"margin-bottom:0cm;margin-bottom:.0001pt\"><o:p>&nbsp;</o:p><span style=\"font-size: 0.95rem;\">Olá, Sílvia Carlos,</span></p><br>\n\n<p class=\"MsoNormal\">O seu cenário sobre \"The Different Varieties of\nEnglish\" apresenta um conceito de \"situação-problema\" muito\ninteressante e adequado ao 12.º ano . No entanto, o documento não cumpre a\nestrutura obrigatória solicitada.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fortes</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Contextualização: </b>A proposta de integrar os alunos numa\n\"equipa internacional\" para criar um recurso educativo é excelente\npara promover o denvolvimento .<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Diferenciação Pedagógica: </b>Cuidado de prever estratégias para\ndiferentes ritmos de aprendizagem.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><o:p>&nbsp;</o:p></p>\n\n<p class=\"MsoNormal\"><b>Pontos Fracos</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Identificação: </b>Falta o nome do professor.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Metodologia: </b>\"Aprendizagem baseada em projeto +\naprendizagem ativa + integração de IA\". Não existe uma metodologia chamada\n“integração de IA”. <o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Ausência do Papel do Professor: </b>O cenário não descreve a sua\nintervenção. É mediadora? Orientadora? Como apoia os grupos na interação com a\nIA?<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Falta de Reflexão Final: </b>O trabalho não apresenta a reflexão\nobrigatória sobre o impacto da IA, os cuidados éticos (autoria e uso crítico).</p>\n\n<p class=\"MsoNormal\"><b>Inviabilidade Temporal: </b>Propõe um desafio ambicioso para apenas 100 minutos. Entre a pesquisa, a interação\ncom a IA e a criação, o tempo é manifestamente insuficiente. O plano precisa de\nser estendido para pelo menos duas ou três sessões ou o produto final tem de\nser simplificado.<o:p></o:p></p><b>Curadoria Ética: </b>Adicione uma etapa onde os alunos devem verificar se o sotaque gerado pela IA não é uma \"caricatura\" ou um estereótipo ofensivo, promovendo o pensamento crítico.<br><br>\n\n<p class=\"MsoNormal\"><b>Recomendações para melhorar este cenário</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Engenharia de Prompts com a Claude (Anthropic):</b> Para a\ncriação do protótipo/app, recomendo a Claude. É superior ChatGPT, Gemini, na\nestruturação de lógica e código. <o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>ElevenLabs (Speech-to-Speech):</b> Em vez de usar vozes\nsintéticas que substituem o aluno, utilize a funcionalidade Speech-to-Speech da\nElevenLabs. Desafie os alunos a gravarem a sua própria voz e a usarem a IA\napenas para aplicar o sotaque alvo.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">Estou disponível para qualquer esclarecimento adicional.<o:p></o:p></p><br><p class=\"MsoNormal\">Continuação de um excelente trabalho!<o:p></o:p></p><p class=\"MsoNormal\">\n\n\n\n</p><p class=\"MsoNormal\">A formadora Carla Oliveira<o:p></o:p></p>\n\n<p style=\"margin-left:36.0pt\"><o:p>&nbsp;</o:p></p><p class=\"MsoNormal\"><b>SUGESTÃO DE FERRAMENTAS:</b><o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b> Chatbot que simula falantes de diferentes países</b></p><p class=\"MsoNormal\">Character.AI –\nPermite criar personagens com perfis culturais distintos.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">ChatGPT (plano\ngratuito) – Pode simular sotaques e variantes linguísticas através de prompts\nbem estruturados.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Poe – Dá acesso\ngratuito a vários modelos conversacionais.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Quiz com áudios em vários sotaques</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\">Wordwall – Permite inserir ficheiros áudio nas perguntas.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">LearningApps – Criação de quizzes multimédia.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Kahoot! – Possibilidade de integrar áudio (na versão\ngratuita com limitações).<o:p></o:p></p>\n\n<b><br></b><p class=\"MsoNormal\"><b>Mapa interativo com exemplos de fala</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\">Google My Maps – Permite adicionar pontos com áudio\nincorporado (via link).<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Genially – Criação de mapas interativos com elementos\nmultimédia.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Thinglink – Inserção de hotspots com som.<o:p></o:p></p>\n\n<br><p class=\"MsoNormal\"><b>Flashcards com voz IA</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\">Quizlet – Inclui leitura automática nos cartões.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Canva – Permite criar cartões e adicionar narração\nautomática.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">TTSFree – Geração de voz sintética para depois integrar nas\nflashcards.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">️</p><p class=\"MsoNormal\"><b>Jogo “Match the accent”</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\">Wordwall – Modelo “Match up” com áudio.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Educaplay – Associação áudio–resposta.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">LearningApps – Exercícios de correspondência.<o:p></o:p></p><b><br>\n\n</b><p class=\"MsoNormal\"><b>Mini-podcast com vozes sintéticas</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\">Spotify for Podcasters – Publicação gratuita.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">CapCut – Conversão texto-voz integrada.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">ElevenLabs – Plano gratuito limitado para vozes realistas.<o:p></o:p></p>","nota":"9.17","notaText":"","criterios":[9.5,10,10,10,10,9,7]},{"id":"1772226211393","name":"Helena Serrão","password":"Solar41","feedback":"<p class=\"MsoNormal\">Olá, Helena Serrão,<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">O seu plano sobre “O Falsificacionismo de Karl Popper”\napresenta uma estrutura pedagógica consistente e evidencia um domínio sólido\ndos conteúdos filosóficos. No entanto, no contexto específico desta formação,\nverifica-se a ausência de integração da Inteligência Artificial, que constitui\num dos eixos centrais do programa, tanto ao nível tecnológico como\nmetodológico.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fortes</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Rigor Conceptual: </b>A progressão do problema da indução para a\nfalsificabilidade está muito bem desenhada, com exemplos claros e pertinentes .<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Estrutura de Apoio:</b> As fichas de trabalho por grupos e as\nrespetivas grelhas de correção facilitam muito a avaliação formativa durante a\naula.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>Pontos Fracos </b><o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Ausência Total de ferramentas de IA: </b>O plano não cumpre o requisito de\nintegrar a Inteligência Artificial. A IA não deve ser apenas um tema, mas uma\nferramenta de apoio à aprendizagem ou criação de recursos.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Falta uma <b>metodologia ativa\n</b>onde o aluno seja o construtor do conhecimento.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Falta de Identificação: </b>O documento não identifica o nome do\nprofessor .<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><b>Ausência de Reflexão Final: </b>Não existe a reflexão\nobrigatória sobre ética, impacto da IA e avaliação das aprendizagens.<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><o:p>&nbsp;</o:p></p>\n\n<p class=\"MsoNormal\"><b>Sugestões de possíveis cenários de Aprendizagem</b><o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>1. O \"Duelo de Prompts\": Falsificar a IA\n(Metodologia Ativa: Aprendizagem por Descoberta)<o:p></o:p></b></p>\n\n<p class=\"MsoNormal\"><b>Em vez de ler sobre o que é uma teoria infalsificável, os\nalunos devem construir uma para enganar a IA.</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\">A Atividade: Dividir a turma em grupos. Cada grupo deve usar\no ChatGPT ou Claude com a missão de criar uma teoria\n\"pseudocientífica\" tão bem construída que a IA tenha dificuldade em\nrefutar.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">O Papel do Aluno: O aluno atua como um \"advogado do\ndiabo\". Cada aluno deverá ajustar os prompts até que a IA aceite a teoria\ncomo plausível.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">A Prova de Popper: Depois, os grupos trocam de lugar e o\ngrupo B tem de usar o critério de Popper para \"partir\" a teoria do\ngrupo A, forçando a IA a admitir que a teoria não é falsificável (logo, não é\nciência).<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Ferramenta: ChatGPT ou Claude.<o:p></o:p></p><b><br>\n\n</b><p class=\"MsoNormal\"><b>2. Laboratório de \"Vozes de Conjetura\"\n(Metodologia Ativa: Criação de Conteúdo)</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\">Popper diz que a ciência avança por \"conjeturas\nousadas\". Propõe-se que os alunos criem essas conjeturas.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">A Atividade: Os alunos escolh Propõe-se que os alunos criem\nessas conjeturas.em um problema atual (ex: alterações climáticas ou IA\nconsciente). Devem escrever uma \"conjetura ousada\" (uma hipótese)\nsobre esse tema.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Uso de IA (ElevenLabs): Usando a funcionalidade Speech-to-Speech,\nos alunos gravam a sua explicação da conjetura. Depois, utilizam a IA para\ntransformar a sua voz numa voz de autoridade científica (ex: um tom de\ndocumentário).<o:p></o:p></p>\n\n<p class=\"MsoNormal\">O Papel do Aluno: O exercício não é a voz, é o guião: o\naluno tem de incluir obrigatoriamente no seu áudio quais são as condições que, se\nverificadas, tornariam a sua teoria falsa. Se ele não conseguir definir como a\nsua teoria pode ser errada, o trabalho falha o critério de Popper.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Ferramenta: ElevenLabs.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\"><b>3. Curadoria Crítica com NotebookLM (Metodologia Ativa:\nPensamento Crítico)</b><o:p></o:p></p>\n\n<p class=\"MsoNormal\">A Atividade: O professor carrega o PDF do texto original de\nPopper no NotebookLM.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">O Papel do Aluno: Em vez de fazerem perguntas à IA sobre o\nque é o falsificacionismo, os alunos devem usar a IA para gerar um\n\"Podcast\" (funcionalidade Audio Overview) sobre um tema polémico (ex:\nAstrologia).<o:p></o:p></p>\n\n<p class=\"MsoNormal\">A Ação Ativa: Os alunos devem ouvir o podcast gerado pela IA\ne auditar o conteúdo, assinalando onde é que a IA foi indutivista e onde foi\npopperiana. Eles têm de \"corrigir\" a IA com base nos textos fonte que\nestão na plataforma.<o:p></o:p></p>\n\n<p class=\"MsoNormal\">Ferramenta: NotebookLM (Google).<o:p></o:p></p><br><p class=\"MsoNormal\">Estou disponível para qualquer esclarecimento adicional.<o:p></o:p></p><br>\n\n<p class=\"MsoNormal\">Continuação de um excelente trabalho!<o:p></o:p></p>\n\n<p class=\"MsoNormal\"><o:p><span style=\"font-size: 0.95rem;\">A formadora Carla Oliveira</span>&nbsp;</o:p></p>","nota":"8.32","notaText":"","criterios":[9.5,10,7,7,8,10,7]}];
 
-async function importar() {
-  for (const student of students) {
+async function importarAlunos() {
+  for (const student of studentsImportData) {
     await db.collection("students").doc(student.id).set(student);
   }
-  alert("IMPORTAÇÃO CONCLUÍDA!");
+  alert("ALUNOS IMPORTADOS COM SUCESSO");
 }
-
 </script>
+
+<div style="position:fixed;bottom:20px;right:20px;z-index:9999">
+<button onclick="importarAlunos()" style="padding:10px 14px;font-size:12px">
+IMPORTAR BASE INICIAL
+</button>
+</div>
 
 </body>
 </html>
+
